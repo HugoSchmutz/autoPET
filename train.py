@@ -108,8 +108,8 @@ def main_worker(gpu, ngpus_per_node, args):
     # Prepare data loaders
     standard_transform = tio.Compose([
         tio.ToCanonical(),
-        tio.RescaleIntensity(keys=['ct'], in_min_max = (-100, 250), out_min_max = (0,1)),
-        tio.RescaleIntensity(keys=['pet'], in_min_max = (0, 15), out_min_max = (0,1)),
+        tio.RescaleIntensity(include=['ct'], in_min_max = (-100, 250), out_min_max = (0,1)),
+        tio.RescaleIntensity(include=['pet'], in_min_max = (0, 15), out_min_max = (0,1)),
         #tio.Resample(2),
         tio.OneHot(num_classes=2)])
 
@@ -264,8 +264,8 @@ if __name__ == "__main__":
     parser.add_argument('--patch_d0', type=int, default=128, help='patch size along the first dimension')
     parser.add_argument('--patch_d1', type=int, default=128, help='patch size along the second dimension')
     parser.add_argument('--patch_d2', type=int, default=32, help='patch size along the third dimension')
-    parser.add_argument('--samples_per_volume', type=int, default=1)
-    parser.add_argument('--max_queue_length', type=int, default=100)
+    parser.add_argument('--samples_per_volume', type=int, default=10)
+    parser.add_argument('--max_queue_length', type=int, default=200)
     '''
     Optimizer configurations
     '''

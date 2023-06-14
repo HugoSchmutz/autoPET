@@ -91,7 +91,7 @@ class Action(enum.Enum):
 def prepare_batch(batch, gpu):
     pet = batch['pet'][tio.DATA].cuda(gpu)
     ct = batch['ct'][tio.DATA].cuda(gpu)
-    inputs = torch.concat([pet,ct], axis=CHANNELS_DIMENSION)
+    inputs = torch.cat([pet,ct], axis=CHANNELS_DIMENSION)
     targets = batch['segmentation'][tio.DATA].cuda(gpu)
     return inputs, targets
 
