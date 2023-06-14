@@ -58,7 +58,8 @@ def get_exams(data_path, patients_list):
     return(paths_list)
             
 def get_exams_train_test(data_path, num_eval):
-    patients = os.listdir(data_path)
+    #patients = os.listdir(data_path)
+    patients = list(np.load(data_path+'positive_patients.npy'))
     patients_train, patients_test = train_test_split(patients, test_size = num_eval, random_state=0)
     all_paths_train, all_paths_test = get_exams(data_path, patients_train), get_exams(data_path,patients_test)
 

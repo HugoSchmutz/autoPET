@@ -110,7 +110,7 @@ def main_worker(gpu, ngpus_per_node, args):
         tio.ToCanonical(),
         tio.RescaleIntensity(keys=['ct'], in_min_max = (-100, 250), out_min_max = (0,1)),
         tio.RescaleIntensity(keys=['pet'], in_min_max = (0, 15), out_min_max = (0,1)),
-        #tio.Resample(4),
+        #tio.Resample(2),
         tio.OneHot(num_classes=2)])
 
     patch_size = (args.patch_d0, args.patch_d1, args.patch_d2)
@@ -135,8 +135,6 @@ def main_worker(gpu, ngpus_per_node, args):
 
     print('Training labelled set:', len(training_labelled_set), 'subjects \t Training unlabelled set:', len(training_unlabelled_set), 'subjects')
     print('Validation set:', len(validation_set), 'subjects')
-
-
 
     patches_training_labelled_set = tio.Queue(
         subjects_dataset=training_labelled_set,
@@ -289,7 +287,7 @@ if __name__ == "__main__":
     '''
     Data Configurations
     '''
-    parser.add_argument('--data_path', type=str, default='./manifest-1654187277763/FDG-PET-CT-Lesions_nifti/')
+    parser.add_argument('--data_path', type=str, default='./data/FDG-PET-CT-Lesions_nifti/')
     parser.add_argument('--train_sampler', type=str, default='RandomSampler')
     parser.add_argument('--num_classes', type=int, default=10)
     parser.add_argument('--num_workers', type=int, default=1)
