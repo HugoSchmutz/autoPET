@@ -265,7 +265,7 @@ if __name__ == "__main__":
     parser.add_argument('--patch_d1', type=int, default=128, help='patch size along the second dimension')
     parser.add_argument('--patch_d2', type=int, default=32, help='patch size along the third dimension')
     parser.add_argument('--samples_per_volume', type=int, default=10)
-    parser.add_argument('--max_queue_length', type=int, default=500)
+    parser.add_argument('--max_queue_length', type=int, default=1000)
     '''
     Optimizer configurations
     '''
@@ -290,7 +290,7 @@ if __name__ == "__main__":
     parser.add_argument('--data_path', type=str, default='./data/FDG-PET-CT-Lesions_nifti/')
     parser.add_argument('--train_sampler', type=str, default='RandomSampler')
     parser.add_argument('--num_classes', type=int, default=10)
-    parser.add_argument('--num_workers', type=int, default=1)
+    parser.add_argument('--num_workers', type=int, default=4)
 
 
     '''
