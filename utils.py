@@ -10,18 +10,28 @@ from unet import UNet
 from tqdm.auto import tqdm
 import os
 from sklearn.model_selection import train_test_split
+import torchio as tio 
 
 CHANNELS_DIMENSION = 1
 SPATIAL_DIMENSIONS = 2, 3, 4
 
 def train(model, optimizer, loss_function, eval_function, loader, val_loader, num_epoch, gpu):
     for epoch in range(1, num_epoch+1):
-        epoch_losses = train_epoch(model, optimizer, loss_function, loader, gpu)
-        print(f'TRAIN mean loss: {np.mean(epoch_losses).mean():0.3f}')
+        epoch_losses = train_epoch_complete_case(model, optimizer, loss_function, loader, gpu)
+        print(f'EPOCH: {epoch} TRAIN mean loss: {np.mean(epoch_losses).mean():0.3f}')
 
         epoch_loss_val = validation(model, gpu, eval_function, val_loader)
-        print(f'Valid mean loss: {np.array(epoch_loss_val).mean():0.3f}')
+        print(f'EPOCH: {epoch} Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}')
 
+def train_ssl(model, optimizer, loss_function, eval_function, loader, loader_ulb, val_loader, num_epoch, lmbd, gpu):
+    for epoch in range(1, num_epoch+1):
+        epoch_losses = train_epoch_SegPL(model, optimizer, loss_function, loader, loader_ulb, lmbd, gpu)
+        print(f'EPOCH: {epoch} TRAIN mean loss: {np.mean(epoch_losses).mean():0.3f}')
+
+        epoch_loss_val = validation(model, gpu, eval_function, val_loader)
+        print(f'EPOCH: {epoch} Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}')
+
+        
         
 def validation(model, gpu, loss_function, loader):
     epoch_losses = []
@@ -34,7 +44,7 @@ def validation(model, gpu, loss_function, loader):
             epoch_losses.append(batch_loss.item())
     return(epoch_losses)
 
-def train_epoch(model, optimizer, loss_function, loader, gpu):
+def train_epoch_complete_case(model, optimizer, loss_function, loader, gpu):
     epoch_losses = []
     model.train()
     for batch_idx, batch in enumerate(tqdm(loader)):
@@ -48,6 +58,27 @@ def train_epoch(model, optimizer, loss_function, loader, gpu):
         epoch_losses.append(batch_loss.item())
     return(epoch_losses)
 
+def train_epoch_SegPL(model, optimizer, loss_function, loader, loader_ulb, lmbd, gpu):
+    epoch_losses = []
+    model.train()
+    for batch_idx, (batch, batch_u) in enumerate(tqdm(zip(loader, loader_ulb))):
+        optimizer.zero_grad()
+        inputs, targets = prepare_batch(batch, gpu)
+        inputs_u, _ = prepare_batch(batch_u, gpu)
+        #print(inputs.shape, targets.shape)
+        logits = model(inputs)
+        batch_loss = loss_function(logits, targets)
+        
+        logits_u = model(inputs_u)
+        pseudo_labels = tio.OneHot(num_classes=2)(logits_u>0)[:,1].detach()
+        unsup_loss = loss_function(logits_u, pseudo_labels)
+        
+        batch_loss += lmbd * unsup_loss
+        
+        batch_loss.backward()
+        optimizer.step()
+        epoch_losses.append(batch_loss.item())
+    return(epoch_losses)
 
 def get_exams(data_path, patients_list):
     paths_list = []

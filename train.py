@@ -189,7 +189,7 @@ def main_worker(gpu, ngpus_per_node, args):
     )
 
     optimizer = torch.optim.Adam(unet.parameters(), lr=args.learning_rate)
-    loss_function = monai.losses.DiceCELoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
+    loss_function = monai.losses.DiceLoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
     eval_function = monai.losses.DiceLoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
     # SET Devices for (Distributed) DataParallel
     if not torch.cuda.is_available():
@@ -223,10 +223,13 @@ def main_worker(gpu, ngpus_per_node, args):
     
     cudnn.benchmark = True
 
-    train(unet, optimizer, loss_function, eval_function, training_labelled_loader_patches, 
-          validation_loader_patches, args.epoch, args.gpu )
+    if args.SegPL:
+        train_ssl(unet, optimizer, loss_function, eval_function, training_labelled_loader_patches, 
+                training_unlabelled_loader_patches, validation_loader_patches, args.epoch, args.lmbd, args.gpu)
+    else:
+        train(unet, optimizer, loss_function, eval_function, training_labelled_loader_patches, 
+            validation_loader_patches, args.epoch, args.gpu )
     
-
 if __name__ == "__main__":
 
     import argparse
@@ -266,6 +269,9 @@ if __name__ == "__main__":
     parser.add_argument('--patch_d2', type=int, default=32, help='patch size along the third dimension')
     parser.add_argument('--samples_per_volume', type=int, default=10)
     parser.add_argument('--max_queue_length', type=int, default=500)
+    parser.add_argument('--SegPL', action='store_true', help='Segmentation Pseudo Label')
+    parser.add_argument('--lmbd', type=float, default = 1., help= 'Unlabelled loss weight')
+
     '''
     Optimizer configurations
     '''
