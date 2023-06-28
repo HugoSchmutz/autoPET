@@ -65,12 +65,13 @@ def train_epoch_SegPL(model, optimizer, loss_function, loader, loader_ulb, lmbd,
         optimizer.zero_grad()
         inputs, targets = prepare_batch(batch, gpu)
         inputs_u, _ = prepare_batch(batch_u, gpu)
-        #print(inputs.shape, targets.shape)
+
         logits = model(inputs)
         batch_loss = loss_function(logits, targets)
         
         logits_u = model(inputs_u)
-        pseudo_labels = tio.OneHot(num_classes=2)(logits_u>0)[:,1].detach()
+        pseudo_labels =  torch.stack([tio.OneHot(num_classes=2)(m) for m in torch.unbind((logits_u>0)[:,1].detach(), dim=0) ], dim=0)
+        
         unsup_loss = loss_function(logits_u, pseudo_labels)
         
         batch_loss += lmbd * unsup_loss

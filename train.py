@@ -189,8 +189,8 @@ def main_worker(gpu, ngpus_per_node, args):
     )
 
     optimizer = torch.optim.Adam(unet.parameters(), lr=args.learning_rate)
-    loss_function = monai.losses.DiceLoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
-    eval_function = monai.losses.DiceLoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
+    loss_function = monai.losses.DiceCELoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
+    eval_function = monai.losses.DiceCELoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
     # SET Devices for (Distributed) DataParallel
     if not torch.cuda.is_available():
         raise Exception('ONLY GPU TRAINING IS SUPPORTED')
