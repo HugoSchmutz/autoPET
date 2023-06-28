@@ -70,6 +70,9 @@ def train_epoch_SegPL(model, optimizer, loss_function, loader, loader_ulb, lmbd,
         batch_loss = loss_function(logits, targets)
         
         logits_u = model(inputs_u)
+        
+        print((logits_u>0).shape)
+        
         print((logits_u>0)[:,1].detach().shape)
         print(torch.unbind((logits_u>0)[:,1].detach())[0].shape)
 
