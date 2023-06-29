@@ -77,7 +77,7 @@ def train_epoch_SegPL(model, optimizer, loss_function, loader, loader_ulb, lmbd,
         print(torch.unbind((logits_u>0)[:,1:].detach())[0].shape)
 
         pseudo_labels =  torch.stack([tio.OneHot(num_classes=2)(m) for m in torch.unbind((logits_u>0)[:,1:].detach(), dim=0) ], dim=0)
-        
+        print(pseudo_labels.shape)
         unsup_loss = loss_function(logits_u, pseudo_labels)
         
         batch_loss += lmbd * unsup_loss
