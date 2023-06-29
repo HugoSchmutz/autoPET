@@ -10,7 +10,6 @@ from unet import UNet
 from tqdm.auto import tqdm
 import os
 from sklearn.model_selection import train_test_split
-import torchio as tio 
 
 CHANNELS_DIMENSION = 1
 SPATIAL_DIMENSIONS = 2, 3, 4
@@ -58,7 +57,7 @@ def train_epoch_complete_case(model, optimizer, loss_function, loader, gpu):
         epoch_losses.append(batch_loss.item())
     return(epoch_losses)
 
-def train_epoch_SegPL(model, optimizer, loss_function, loader, loader_ulb, lmbd, gpu):
+def train_epoch_SegPL(model, optimizer, loss_function, ulb_loss_function, loader, loader_ulb, lmbd, gpu):
     epoch_losses = []
     model.train()
     for batch_idx, (batch, batch_u) in enumerate(tqdm(zip(loader, loader_ulb))):
@@ -71,15 +70,9 @@ def train_epoch_SegPL(model, optimizer, loss_function, loader, loader_ulb, lmbd,
         
         logits_u = model(inputs_u)
         
-        print((logits_u>0).shape)
-        
-        print((logits_u>0)[:,1:].detach().shape)
-        print(torch.unbind((logits_u>0)[:,1:].detach())[0].shape)
 
-        pseudo_labels =  torch.stack([tio.OneHot(num_classes=2)(m) for m in torch.unbind((logits_u>0)[:,1:].detach(), dim=0) ], dim=0)
-        print(pseudo_labels.shape)
-        print(targets.shape)
-        unsup_loss = loss_function(logits_u, pseudo_labels)
+        pseudo_labels =  (logits_u>0)[:,1:].detach()
+        unsup_loss = ulb_loss_function(logits_u, pseudo_labels)
         
         batch_loss += lmbd * unsup_loss
         

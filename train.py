@@ -191,6 +191,8 @@ def main_worker(gpu, ngpus_per_node, args):
     optimizer = torch.optim.Adam(unet.parameters(), lr=args.learning_rate)
     loss_function = monai.losses.DiceCELoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
     eval_function = monai.losses.DiceCELoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
+    ulb_loss_function = monai.losses.DiceCELoss(to_onehot_y=True,softmax=True,include_background=False,batch=True)
+
     # SET Devices for (Distributed) DataParallel
     if not torch.cuda.is_available():
         raise Exception('ONLY GPU TRAINING IS SUPPORTED')
@@ -224,7 +226,7 @@ def main_worker(gpu, ngpus_per_node, args):
     cudnn.benchmark = True
 
     if args.SegPL:
-        train_ssl(unet, optimizer, loss_function, eval_function, training_labelled_loader_patches, 
+        train_ssl(unet, optimizer, loss_function, ulb_loss_function, eval_function, training_labelled_loader_patches, 
                 training_unlabelled_loader_patches, validation_loader_patches, args.epoch, args.lmbd, args.gpu)
     else:
         train(unet, optimizer, loss_function, eval_function, training_labelled_loader_patches, 
