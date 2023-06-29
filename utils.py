@@ -22,9 +22,9 @@ def train(model, optimizer, loss_function, eval_function, loader, val_loader, nu
         epoch_loss_val = validation(model, gpu, eval_function, val_loader)
         print(f'EPOCH: {epoch} Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}')
 
-def train_ssl(model, optimizer, loss_function, eval_function, loader, loader_ulb, val_loader, num_epoch, lmbd, gpu):
+def train_ssl(model, optimizer, loss_function, ulb_loss_function, eval_function, loader, loader_ulb, val_loader, num_epoch, lmbd, gpu):
     for epoch in range(1, num_epoch+1):
-        epoch_losses = train_epoch_SegPL(model, optimizer, loss_function, loader, loader_ulb, lmbd, gpu)
+        epoch_losses = train_epoch_SegPL(model, optimizer, loss_function, ulb_loss_function, loader, loader_ulb, lmbd, gpu)
         print(f'EPOCH: {epoch} TRAIN mean loss: {np.mean(epoch_losses).mean():0.3f}')
 
         epoch_loss_val = validation(model, gpu, eval_function, val_loader)
