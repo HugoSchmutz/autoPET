@@ -334,6 +334,7 @@ if __name__ == "__main__":
     parser.add_argument('--learning_rate', type=float, default=1e-4)
     parser.add_argument('--momentum', type=float, default=0.9)
     parser.add_argument('--weight_decay', type=float, default=5e-4)
+    parser.add_argument('--amp', action='store_true', help='use mixed precision training or not')
 
     '''
     Backbone Net Configurations
