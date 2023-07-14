@@ -12,13 +12,11 @@ import torch.backends.cudnn as cudnn
 import torch.multiprocessing as mp
 import torch.distributed as dist
 
-import torchvision
 import torchio as tio
 import torch.nn.functional as F
 from sklearn.model_selection import train_test_split
 from utils import *
 import numpy as np
-from unet import UNet
 from scipy import stats
 import matplotlib.pyplot as plt
 
@@ -159,7 +157,7 @@ def main_worker(gpu, ngpus_per_node, args):
     patches_validation_set = tio.Queue(
         subjects_dataset=validation_set,
         max_length=args.max_queue_length,
-        samples_per_volume=args.samples_per_volume,
+        samples_per_volume=args.samples_per_volume*2,
         sampler=sampler,
         num_workers=args.num_workers,
         shuffle_subjects=False,
@@ -178,20 +176,12 @@ def main_worker(gpu, ngpus_per_node, args):
 
 
     #Set model, loss and optimizer
-    unet = monai.networks.nets.UNet(
-        spatial_dims=3,
-        in_channels=2,
-        out_channels=2,
-        channels=(16, 32, 64, 128, 256),
-        strides=(2, 2, 2, 2),
-        num_res_units=2,
-        norm= monai.networks.layers.Norm.BATCH,
-    )
+    unet = net_builder()
 
     optimizer = torch.optim.Adam(unet.parameters(), lr=args.learning_rate)
     loss_function = monai.losses.DiceCELoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
-    eval_function = monai.losses.DiceCELoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
-    ulb_loss_function = monai.losses.DiceCELoss(to_onehot_y=True,softmax=True,include_background=False,batch=True)
+    eval_function = monai.losses.DiceLoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
+    ulb_loss_function = monai.losses.DiceCELoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
 
     # SET Devices for (Distributed) DataParallel
     if not torch.cuda.is_available():
@@ -227,7 +217,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     if args.SegPL:
         train_ssl(unet, optimizer, loss_function, ulb_loss_function, eval_function, training_labelled_loader_patches, 
-                training_unlabelled_loader_patches, validation_loader_patches, args.epoch, args.lmbd, args.gpu)
+                training_unlabelled_loader_patches, validation_loader_patches, args.epoch, args.lmbd, args.gpu, args.num_epoch_pretraining)
     else:
         train(unet, optimizer, loss_function, eval_function, training_labelled_loader_patches, 
             validation_loader_patches, args.epoch, args.gpu )
@@ -236,11 +226,6 @@ if __name__ == "__main__":
 
     import argparse
     parser = argparse.ArgumentParser(description='')
-
-    CHANNELS_DIMENSION = 1
-    SPATIAL_DIMENSIONS = 2, 3, 4
-
-
 
     '''
     Saving & loading of the model.
@@ -269,11 +254,11 @@ if __name__ == "__main__":
     parser.add_argument('--patch_d0', type=int, default=128, help='patch size along the first dimension')
     parser.add_argument('--patch_d1', type=int, default=128, help='patch size along the second dimension')
     parser.add_argument('--patch_d2', type=int, default=32, help='patch size along the third dimension')
-    parser.add_argument('--samples_per_volume', type=int, default=10)
-    parser.add_argument('--max_queue_length', type=int, default=500)
+    parser.add_argument('--samples_per_volume', type=int, default=12)
+    parser.add_argument('--max_queue_length', type=int, default=1000 )
     parser.add_argument('--SegPL', action='store_true', help='Segmentation Pseudo Label')
     parser.add_argument('--lmbd', type=float, default = 1., help= 'Unlabelled loss weight')
-
+    parser.add_argument('--num_epoch_pretraining', type = int, default=100, help='number of pretraining epoch')
     '''
     Optimizer configurations
     '''

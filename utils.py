@@ -10,38 +10,68 @@ from unet import UNet
 from tqdm.auto import tqdm
 import os
 from sklearn.model_selection import train_test_split
+import monai
+import logging
+import nibabel as nib
+import pathlib as plb
+import cc3d
+from torch.utils.tensorboard import SummaryWriter
+
+voxel_vol = 0.012441020965576172
 
 CHANNELS_DIMENSION = 1
-SPATIAL_DIMENSIONS = 2, 3, 4
+SPATIAL_DIMENSIONS = 2, 3, 4    
+
+standard_transform = tio.Compose([
+        tio.ToCanonical(),
+        tio.RescaleIntensity(include=['ct'], in_min_max = (-100, 250), out_min_max = (0,1)),
+        tio.RescaleIntensity(include=['pet'], in_min_max = (0, 15), out_min_max = (0,1)),
+        tio.OneHot(num_classes=2)])
 
 def train(model, optimizer, loss_function, eval_function, loader, val_loader, num_epoch, gpu):
     for epoch in range(1, num_epoch+1):
         epoch_losses = train_epoch_complete_case(model, optimizer, loss_function, loader, gpu)
         print(f'EPOCH: {epoch} TRAIN mean loss: {np.mean(epoch_losses).mean():0.3f}')
 
-        epoch_loss_val = validation(model, gpu, eval_function, val_loader)
-        print(f'EPOCH: {epoch} Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}')
-
-def train_ssl(model, optimizer, loss_function, ulb_loss_function, eval_function, loader, loader_ulb, val_loader, num_epoch, lmbd, gpu):
+        if epoch % 10 == 0:
+            epoch_loss_val, metrics = validation(model, gpu, eval_function, val_loader)
+            #dice_sc, false_pos_vol, false_neg_vol = np.mean(metrics, axis = 0)
+            #print(f'Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}, DC: {dice_sc:0.3f}, FP: {false_pos_vol:0.3f}, FN: {false_neg_vol:0.3f}')
+            print(f'Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}')
+        
+def train_ssl(model, optimizer, loss_function, ulb_loss_function, eval_function, loader, loader_ulb, val_loader, num_epoch, lmbd, gpu, num_epoch_pretraining):
     for epoch in range(1, num_epoch+1):
-        epoch_losses = train_epoch_SegPL(model, optimizer, loss_function, ulb_loss_function, loader, loader_ulb, lmbd, gpu)
+        if epoch < num_epoch_pretraining:
+            epoch_losses = train_epoch_complete_case(model, optimizer, loss_function, loader, gpu)
+        else:
+            epoch_losses = train_epoch_SegPL(model, optimizer, loss_function, ulb_loss_function, loader, loader_ulb, lmbd, gpu)
         print(f'EPOCH: {epoch} TRAIN mean loss: {np.mean(epoch_losses).mean():0.3f}')
-
-        epoch_loss_val = validation(model, gpu, eval_function, val_loader)
-        print(f'EPOCH: {epoch} Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}')
+        if epoch % 10 == 0:
+            epoch_loss_val, metrics = validation(model, gpu, eval_function, val_loader)
+            #dice_sc, false_pos_vol, false_neg_vol = np.mean(metrics, axis = 0)
+            #print(f'Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}, DC: {dice_sc:0.3f}, FP: {false_pos_vol:0.3f}, FN: {false_neg_vol:0.3f}')
+            print(f'Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}')
 
         
-        
+def set_loss(loss_name, to_onehot_y, softmax, include_background, batch):
+    if loss_name == 'dice':
+        loss = monai.losses.DiceLoss(to_onehot_y=to_onehot_y,softmax=softmax,include_background=include_background,batch=batch)
+    elif loss_name == 'CEdice':
+        loss = monai.losses.DiceCELoss(to_onehot_y=to_onehot_y,softmax=softmax,include_background=include_background,batch=batch)
+    return(loss)   
+              
 def validation(model, gpu, loss_function, loader):
     epoch_losses = []
+    metrics = []
     model.eval()
     with torch.no_grad():
         for batch_idx, batch in enumerate(tqdm(loader)):
             inputs, targets = prepare_batch(batch, gpu)
             logits = model(inputs)
             batch_loss = loss_function(logits, targets)
+            #metrics += [compute_metrics(l, p) for l,p in zip(targets[:,1].cpu(), (logits>0).long()[:,1].cpu())]
             epoch_losses.append(batch_loss.item())
-    return(epoch_losses)
+    return(epoch_losses, metrics)
 
 def train_epoch_complete_case(model, optimizer, loss_function, loader, gpu):
     epoch_losses = []
@@ -51,7 +81,10 @@ def train_epoch_complete_case(model, optimizer, loss_function, loader, gpu):
         inputs, targets = prepare_batch(batch, gpu)
         #print(inputs.shape, targets.shape)
         logits = model(inputs)
-        batch_loss = loss_function(logits, targets)
+        if targets.sum()>0:
+            batch_loss = loss_function(logits, targets)
+        else:
+            torch.zeros(1).cuda()
         batch_loss.backward()
         optimizer.step()
         epoch_losses.append(batch_loss.item())
@@ -65,16 +98,23 @@ def train_epoch_SegPL(model, optimizer, loss_function, ulb_loss_function, loader
         inputs, targets = prepare_batch(batch, gpu)
         inputs_u, _ = prepare_batch(batch_u, gpu)
 
+        #Labelled loss
         logits = model(inputs)
-        batch_loss = loss_function(logits, targets)
+        if targets.sum()>0:
+            sup_loss = loss_function(logits, targets)
+        else:
+            torch.zeros(1).cuda()
         
+        #Unlabelled loss
         logits_u = model(inputs_u)
-        
-
-        pseudo_labels =  (logits_u>0)[:,1:].detach()
-        unsup_loss = ulb_loss_function(logits_u, pseudo_labels)
-        
-        batch_loss += lmbd * unsup_loss
+        probabilities = torch.nn.Softmax(dim=1)(logits_u)
+        pseudo_labels =  (probabilities>0.5).float().detach()
+        mask = (probabilities[:,1]>0.95).float() + (probabilities[:,0]>0.95)
+        if pseudo_labels.sum()>0:
+            unsup_loss = ulb_loss_function(logits_u, pseudo_labels, mask)
+        else:
+            torch.zeros(1).cuda()
+        batch_loss = sup_loss + lmbd * unsup_loss
         
         batch_loss.backward()
         optimizer.step()
@@ -143,3 +183,154 @@ def get_dice_score(output, target, epsilon=1e-9):
 def get_dice_loss(output, target):
     return 1 - get_dice_score(output, target)
 
+class Get_Scalar:
+    def __init__(self, value):
+        self.value = value
+        
+    def get_value(self, iter):
+        return self.value
+    
+    def __call__(self, iter):
+        return self.value
+
+def net_builder(num_classes=2):
+    unet = monai.networks.nets.UNet(
+        spatial_dims=3,
+        in_channels=2,
+        out_channels=num_classes,
+        channels=(16, 32, 64, 128, 256),
+        strides=(2, 2, 2, 2),
+        num_res_units=2,
+        norm= monai.networks.layers.Norm.BATCH,
+    )
+    return unet
+
+    
+def get_logger(name, save_path=None, level='INFO'):
+    logger = logging.getLogger(name)
+    logger.setLevel(getattr(logging, level))
+    
+    log_format = logging.Formatter('[%(asctime)s %(levelname)s] %(message)s')
+    streamHandler = logging.StreamHandler()
+    streamHandler.setFormatter(log_format)
+    logger.addHandler(streamHandler)
+    
+    if not save_path is None:
+        os.makedirs(save_path, exist_ok=True)
+        fileHandler = logging.FileHandler(os.path.join(save_path, 'log.txt'))
+        fileHandler.setFormatter(log_format)
+        logger.addHandler(fileHandler)
+    
+    return logger
+            
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+
+def get_ssl_dataset(data_path, num_labelled, num_eval, transform=standard_transform):
+    all_paths_train, all_paths_test = get_exams_train_test(data_path, num_eval)
+    subjects_train = subjects_list(all_paths_train)
+    subjects_test = subjects_list(all_paths_test)
+
+
+
+    labelled_subjects, unlabelled_subjects = split_labelled_unlabelled(subjects_train, num_labelled)
+
+    training_labelled_set = tio.SubjectsDataset(
+        labelled_subjects, transform=transform)
+
+    training_unlabelled_set = tio.SubjectsDataset(
+        unlabelled_subjects, transform=transform)
+
+    validation_set = tio.SubjectsDataset(
+        subjects_test, transform=transform)
+    return(training_labelled_set, training_unlabelled_set, validation_set)
+
+
+
+def setattr_cls_from_kwargs(cls, kwargs):
+    #if default values are in the cls,
+    #overlap the value by kwargs
+    for key in kwargs.keys():
+        if hasattr(cls, key):
+            print(f"{key} in {cls} is overlapped by kwargs: {getattr(cls,key)} -> {kwargs[key]}")
+        setattr(cls, key, kwargs[key])
+
+        
+def test_setattr_cls_from_kwargs():
+    class _test_cls:
+        def __init__(self):
+            self.a = 1
+            self.b = 'hello'
+    test_cls = _test_cls()
+    config = {'a': 3, 'b': 'change_hello', 'c':5}
+    setattr_cls_from_kwargs(test_cls, config)
+    for key in config.keys():
+        print(f"{key}:\t {getattr(test_cls, key)}")
+        
+ 
+ 
+def nii2numpy(nii_path):
+    # input: path of NIfTI segmentation file, output: corresponding numpy array and voxel_vol in ml
+    mask_nii = nib.load(str(nii_path))
+    mask = mask_nii.get_fdata()
+    pixdim = mask_nii.header['pixdim']   
+    voxel_vol = pixdim[1]*pixdim[2]*pixdim[3]/1000
+    return mask, voxel_vol
+
+
+
+def con_comp(seg_array):
+    # input: a binary segmentation array output: an array with seperated (indexed) connected components of the segmentation array
+    connectivity = 18
+    conn_comp = cc3d.connected_components(seg_array, connectivity=connectivity)
+    return conn_comp
+
+
+def false_pos_pix(gt_array,pred_array):
+    # compute number of voxels of false positive connected components in prediction mask
+    pred_conn_comp = con_comp(pred_array)
+    
+    false_pos = 0
+    for idx in range(1,pred_conn_comp.max()+1):
+        comp_mask = np.isin(pred_conn_comp, idx)
+        if (comp_mask*gt_array).sum() == 0:
+            false_pos = false_pos+comp_mask.sum()
+    return false_pos
+
+
+
+def false_neg_pix(gt_array,pred_array):
+    # compute number of voxels of false negative connected components (of the ground truth mask) in the prediction mask
+    gt_conn_comp = con_comp(gt_array)
+
+    false_neg = 0
+    for idx in range(1,gt_conn_comp.max()+1):
+        comp_mask = np.isin(gt_conn_comp, idx)
+        if (comp_mask*pred_array).sum() == 0:
+            false_neg = false_neg+comp_mask.sum()
+            
+    return false_neg
+
+
+def dice_score(mask1,mask2):
+    # compute foreground Dice coefficient
+    overlap = (mask1*mask2).sum()
+    sum = mask1.sum()+mask2.sum()
+    dice_score = 2*overlap/sum
+    return dice_score
+
+
+
+def compute_metrics(label, prediction):
+    # main function
+    gt_array = label.numpy()
+    pred_array = prediction.numpy()
+    false_neg_vol = false_neg_pix(gt_array, pred_array)*voxel_vol
+    false_pos_vol = false_pos_pix(gt_array, pred_array)*voxel_vol
+    dice_sc = dice_score(gt_array,pred_array)
+    return dice_sc, false_pos_vol, false_neg_vol
+
+
+def masked_cross_entropy(predictions, labels, mask):
+    return 1
