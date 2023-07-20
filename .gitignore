@@ -1,0 +1,12 @@
+
+/TCIA_processing
+__pycache__/
+/ai4pet-integrate-no-tumor/
+/autoPET/
+/batch_whole_images.png
+/colormap.txt
+/data/
+
+
+/saved_models/
+/tensorboard/
