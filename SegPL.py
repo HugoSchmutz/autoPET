@@ -254,11 +254,17 @@ class SegPL:
         save_filename = os.path.join(save_path, save_name)
         train_model = self.train_model.module if hasattr(self.train_model, 'module') else self.train_model
         eval_model = self.eval_model.module if hasattr(self.eval_model, 'module') else self.eval_model
-        torch.save({'train_model': train_model.state_dict(),
-                    'eval_model': eval_model.state_dict(),
-                    'optimizer': self.optimizer.state_dict(),
-                    'scheduler': self.scheduler.state_dict(),
-                    'it': self.it}, save_filename)
+        if self.scheduler is not None:
+            torch.save({'train_model': train_model.state_dict(),
+                        'eval_model': eval_model.state_dict(),
+                        'optimizer': self.optimizer.state_dict(),
+                        'scheduler': self.scheduler.state_dict(),
+                        'it': self.it}, save_filename)
+        else:
+            torch.save({'train_model': train_model.state_dict(),
+                        'eval_model': eval_model.state_dict(),
+                        'optimizer': self.optimizer.state_dict(),
+                        'it': self.it}, save_filename)
         
         self.print_fn(f"model saved: {save_filename}")
     
