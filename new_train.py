@@ -352,7 +352,7 @@ if __name__ == "__main__":
     '''
     parser.add_argument('--data_dir', type=str, default='./data/FDG-PET-CT-Lesions_nifti/')
     parser.add_argument('--train_sampler', type=str, default='RandomSampler')
-    parser.add_argument('--num_classes', type=int, default=10)
+    parser.add_argument('--num_classes', type=int, default=2)
     parser.add_argument('--num_workers', type=int, default=1)
 
 
