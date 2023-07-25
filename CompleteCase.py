@@ -39,8 +39,7 @@ class CompleteCase:
         self.train_model = net_builder(num_classes=num_classes) 
         self.eval_model = net_builder(num_classes=num_classes)
         self.num_eval_iter = num_eval_iter
-        self.p_fn = Get_Scalar(p_cutoff) #confidence cutoff function
-        self.lambda_u = lambda_u
+
         self.tb_log = tb_log
         
         self.optimizer = None
