@@ -135,16 +135,11 @@ class SegPL:
             #weak and strong augmentations for labelled and unlabelled data
 
             inputs = torch.cat((x_lb, x_ulb))
-            print("INPUT",inputs.shape, y_lb.shape)
             # inference and calculate sup/unsup losses
             with amp_cm():
                 logits = self.train_model(inputs)
                 logits_x_lb = logits[:num_lb]
                 logits_x_ulb = logits[num_lb:]
-                
-                print("logits",logits.shape)
-                print("logits_x_lb",logits_x_lb.shape)
-                print("logits_x_ulb",logits_x_ulb.shape)
 
                 del logits
                 # hyper-params for update
@@ -159,7 +154,6 @@ class SegPL:
                 unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels)
                 
                 anti_pseudo_labels = (torch.nn.Softmax(dim=1)(logits_x_lb)>p_cutoff).long().detach()
-                print("PLs", anti_pseudo_labels.shape)
                 anti_unsup_loss = self.unsupervised_loss(logits_x_lb, anti_pseudo_labels)
                     
                 if args.debiased:
@@ -167,9 +161,7 @@ class SegPL:
                 else:
                     total_loss = sup_loss + self.lambda_u * unsup_loss
             del logits_x_lb, logits_x_ulb
-            
-            if args.relu: total_loss = torch.nn.ReLU()(total_loss)
-            
+                        
             # parameter updates
             if args.amp:
                 scaler.scale(total_loss).backward()
