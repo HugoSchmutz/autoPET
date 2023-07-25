@@ -200,7 +200,7 @@ class SegPL:
                 save_path = os.path.join(args.save_dir, args.save_name)
                 
                 if tb_dict['eval/dice'] <= best_eval_dice:
-                    best_eval_dice = tb_dict['eval/loss']
+                    best_eval_dice = tb_dict['eval/dice']
                     best_it = self.it
                 
                 self.print_fn(f"{self.it} iteration, USE_EMA: {hasattr(self, 'eval_model')}, {tb_dict}, BEST_EVAL_DICE: {best_eval_dice}, at {best_it} iters")
