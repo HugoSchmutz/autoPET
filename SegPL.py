@@ -152,7 +152,6 @@ class SegPL:
                 
                 
                 # Supervised loss
-                print(self.supervised_loss)
                 sup_loss = self.supervised_loss(logits_x_lb, y_lb)
                 
                 #Unsupervised losses
@@ -160,6 +159,7 @@ class SegPL:
                 unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels)
                 
                 anti_pseudo_labels = (torch.nn.Softmax(dim=1)(logits_x_lb)>p_cutoff).long().detach()
+                print("PLs", anti_pseudo_labels.shape)
                 anti_unsup_loss = self.unsupervised_loss(logits_x_lb, anti_pseudo_labels)
                     
                 if args.debiased:

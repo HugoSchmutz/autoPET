@@ -55,9 +55,9 @@ def train_ssl(model, optimizer, loss_function, ulb_loss_function, eval_function,
         
 def set_loss(loss_name, to_onehot_y, softmax, include_background, batch):
     if loss_name == 'dice':
-        loss = monai.losses.DiceLoss(to_onehot_y=to_onehot_y,softmax=softmax,include_background=include_background,batch=batch)
+        loss = monai.losses.DiceLoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     elif loss_name == 'CEdice':
-        loss = monai.losses.DiceCELoss(to_onehot_y=to_onehot_y,softmax=softmax,include_background=include_background,batch=batch)
+        loss = monai.losses.DiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     return(loss)   
               
 def validation(model, gpu, loss_function, loader):
