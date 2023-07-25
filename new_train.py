@@ -16,6 +16,7 @@ import torchio as tio
 
 from utils import net_builder, get_logger, count_parameters, get_ssl_dataset, standard_transform
 from SegPL import SegPL
+from CompleteCase import CompleteCase
 from train_utils import TBLog
 
 port_dict = {0:{1:8080, 2:8081, 3:8082, 4:8083, 5:8084}, 
@@ -144,15 +145,28 @@ def main_worker(gpu, ngpus_per_node, args):
 
     # SET SegPL: class SegPL 
     _net_builder = net_builder
-             
-    model = SegPL(_net_builder,
-                     args.num_classes,
-                     args.ema_m,
-                     args.p_cutoff,
-                     args.ulb_loss_ratio,
-                     num_eval_iter=args.num_eval_iter,
-                     tb_log=tb_log,
-                     logger=logger)
+    
+    if args.SegPL:      
+        model = SegPL(_net_builder,
+                        args.num_classes,
+                        args.ema_m,
+                        args.p_cutoff,
+                        args.ulb_loss_ratio,
+                        num_eval_iter=args.num_eval_iter,
+                        tb_log=tb_log,
+                        logger=logger)
+        #Set train losses
+        model.set_supervised_loss('CEdice', to_onehot_y=False, softmax=True, include_background=False, batch=True)
+        model.set_unsupervised_loss('CEdice', to_onehot_y=False, softmax=True, include_background=False, batch=True)
+    else:      
+        model = CompleteCase(_net_builder,
+                        args.num_classes,
+                        args.ema_m,
+                        num_eval_iter=args.num_eval_iter,
+                        tb_log=tb_log,
+                        logger=logger)
+        #Set train losses
+        model.set_loss('CEdice', to_onehot_y=False, softmax=True, include_background=False, batch=True)
 
     logger.info(f'Number of Trainable Params: {count_parameters(model.train_model)}')
     
@@ -160,9 +174,7 @@ def main_worker(gpu, ngpus_per_node, args):
     optimizer = torch.optim.Adam(model.train_model.parameters(), lr=args.learning_rate)
     model.set_optimizer(optimizer)
     
-    #Set train losses
-    model.set_supervised_loss('CEdice', to_onehot_y=False, softmax=True, include_background=False, batch=True)
-    model.set_unsupervised_loss('CEdice', to_onehot_y=False, softmax=True, include_background=False, batch=True)
+    
 
     # SET Devices for (Distributed) DataParallel
     if not torch.cuda.is_available():
