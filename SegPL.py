@@ -152,6 +152,7 @@ class SegPL:
                 
                 
                 # Supervised loss
+                print(self.supervised_loss)
                 sup_loss = self.supervised_loss(logits_x_lb, y_lb)
                 
                 #Unsupervised losses
