@@ -110,7 +110,6 @@ class CompleteCase:
 
 
         for batch in self.loader_dict['train_lb']:
-            print(self.it)
             # prevent the training iterations exceed args.num_train_iter
             if self.it > args.num_train_iter:
                 break
