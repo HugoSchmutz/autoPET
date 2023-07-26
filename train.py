@@ -198,7 +198,7 @@ def main_worker(gpu, ngpus_per_node, args):
             unet.cuda(args.gpu)
             unet = torch.nn.parallel.DistributedDataParallel(unet,
                                                             device_ids=[args.gpu],
-                                                            find_unused_parameters=True)            
+                                                            find_unused_parameters=False)            
         else:
             # if arg.gpu is None, DDP will divide and allocate batch_size
             # to all available GPUs if device_ids are not set.
