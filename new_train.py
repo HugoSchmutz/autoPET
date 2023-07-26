@@ -322,7 +322,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_labels', type=int, default=200)
     parser.add_argument('--num_val', type=int, default=50)
     parser.add_argument('--num_test', type = int, default= 50)
-    parser.add_argument('--batch_size', type=int, default=12,
+    parser.add_argument('--batch_size', type=int, default=20,
                         help='total number of batch size of labeled data')
     parser.add_argument('--uratio', type=int, default=7,
                         help='the ratio of unlabeled data to labeld data in each mini-batch')
