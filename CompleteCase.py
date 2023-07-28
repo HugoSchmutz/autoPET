@@ -132,7 +132,7 @@ class CompleteCase:
                 logits = self.train_model(inputs)                
                 # Supervised loss
                 if y.sum()>0:
-                    total_loss = self.supervised_loss(logits, y)
+                    total_loss = self.loss(logits, y)
                 else:
                     torch.zeros(1).cuda()
                         
