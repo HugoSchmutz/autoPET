@@ -145,9 +145,11 @@ class SegPL:
                 # hyper-params for update
                 p_cutoff = self.p_fn(self.it)
                 
-                
                 # Supervised loss
-                sup_loss = self.supervised_loss(logits_x_lb, y_lb)
+                if y_lb.sum()>0:
+                    sup_loss = self.supervised_loss(logits_x_lb, y_lb)
+                else:
+                    torch.zeros(1).cuda()
                 
                 #Unsupervised losses
                 pseudo_labels = (torch.nn.Softmax(dim=1)(logits_x_ulb)>p_cutoff).long().detach()

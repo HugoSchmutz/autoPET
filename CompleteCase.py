@@ -131,7 +131,10 @@ class CompleteCase:
             with amp_cm():
                 logits = self.train_model(inputs)                
                 # Supervised loss
-                total_loss = self.loss(logits, y)
+                if y_lb.sum()>0:
+                    total_loss = self.supervised_loss(logits_x_lb, y_lb)
+                else:
+                    torch.zeros(1).cuda()
                         
             # parameter updates
             if args.amp:

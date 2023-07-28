@@ -312,8 +312,8 @@ if __name__ == "__main__":
     '''
     Training Configuration of training
     '''
-    parser.add_argument('--epoch', type=int, default=800)
-    parser.add_argument('--num_train_iter', type=int, default=8000, 
+    parser.add_argument('--epoch', type=int, default=1000)
+    parser.add_argument('--num_train_iter', type=int, default=40000, 
                         help='total number of training iterations')
     parser.add_argument('--num_iteration_finetuning', type=int, default=0, 
                         help='total number of finetuning iterations using DeFixmatch')
