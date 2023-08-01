@@ -313,7 +313,7 @@ if __name__ == "__main__":
     Training Configuration of training
     '''
     parser.add_argument('--epoch', type=int, default=1000)
-    parser.add_argument('--num_train_iter', type=int, default=40000, 
+    parser.add_argument('--num_train_iter', type=int, default=80000, 
                         help='total number of training iterations')
     parser.add_argument('--num_iteration_finetuning', type=int, default=0, 
                         help='total number of finetuning iterations using DeFixmatch')
@@ -368,7 +368,7 @@ if __name__ == "__main__":
     parser.add_argument('--data_dir', type=str, default='./data/FDG-PET-CT-Lesions_nifti/')
     parser.add_argument('--train_sampler', type=str, default='RandomSampler')
     parser.add_argument('--num_classes', type=int, default=2)
-    parser.add_argument('--num_workers', type=int, default=12)
+    parser.add_argument('--num_workers', type=int, default=8)
 
 
     '''
