@@ -16,6 +16,9 @@ import nibabel as nib
 import pathlib as plb
 import cc3d
 from torch.utils.tensorboard import SummaryWriter
+from torch.utils.data.sampler import BatchSampler
+import torch.distributed as dist
+from datasets.DistributedProxySampler import DistributedProxySampler
 
 voxel_vol = 0.012441020965576172
 
@@ -334,3 +337,22 @@ def compute_metrics(label, prediction):
 
 def masked_cross_entropy(predictions, labels, mask):
     return 1
+
+
+def get_sampler_by_name(name):
+    '''
+    get sampler in torch.utils.data.sampler by name
+    '''
+    sampler_name_list = sorted(name for name in torch.utils.data.sampler.__dict__ 
+                      if not name.startswith('_') and callable(sampler.__dict__[name]))
+    try:
+        if name == 'DistributedSampler':
+            return torch.utils.data.distributed.DistributedSampler
+        else:
+            return getattr(torch.utils.data.sampler, name)
+    except Exception as e:
+        print(repr(e))
+        print('[!] select sampler in:\t', sampler_name_list)
+        
+        
+

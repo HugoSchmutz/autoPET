@@ -322,7 +322,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_labels', type=int, default=200)
     parser.add_argument('--num_val', type=int, default=50)
     parser.add_argument('--num_test', type = int, default= 50)
-    parser.add_argument('--batch_size', type=int, default=20,
+    parser.add_argument('--batch_size', type=int, default=12,
                         help='total number of batch size of labeled data')
     parser.add_argument('--uratio', type=int, default=7,
                         help='the ratio of unlabeled data to labeld data in each mini-batch')
@@ -333,7 +333,7 @@ if __name__ == "__main__":
     parser.add_argument('--patch_d1', type=int, default=128, help='patch size along the second dimension')
     parser.add_argument('--patch_d2', type=int, default=32, help='patch size along the third dimension')
     parser.add_argument('--samples_per_volume', type=int, default=12)
-    parser.add_argument('--max_queue_length', type=int, default=1000)
+    parser.add_argument('--max_queue_length', type=int, default=600)
     parser.add_argument('--SegPL', action='store_true', help='Segmentation Pseudo Label')
     parser.add_argument('--lmbd', type=float, default = 1., help= 'Unlabelled loss weight')
     parser.add_argument('--T', type=float, default=0.5)
