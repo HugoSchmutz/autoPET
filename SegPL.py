@@ -148,12 +148,15 @@ class SegPL:
                 if y_lb.sum()>0:
                     sup_loss = self.supervised_loss(logits_x_lb, y_lb)
                 else:
-                    torch.zeros(1).cuda()
+                    sup_loss = torch.zeros(1).cuda()
                 
                 #Unsupervised losses
                 pseudo_labels = (torch.nn.Softmax(dim=1)(logits_x_ulb)>p_cutoff).long().detach()
-                unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels)
-                
+                if pseudo_labels.sum()>0:
+                    unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels)
+                else:
+                    unsup_loss = torch.zeros(1).cuda()
+                    
                 anti_pseudo_labels = (torch.nn.Softmax(dim=1)(logits_x_lb)>p_cutoff).long().detach()
                 anti_unsup_loss = self.unsupervised_loss(logits_x_lb, anti_pseudo_labels)
                     
