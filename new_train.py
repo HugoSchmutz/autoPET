@@ -351,6 +351,7 @@ if __name__ == "__main__":
     parser.add_argument('--samples_per_volume', type=int, default=12)
     parser.add_argument('--max_queue_length', type=int, default=600)
     parser.add_argument('--SegPL', action='store_true', help='Segmentation Pseudo Label')
+    parser.add_argument('--SegPL_U', action='store_true', help='Segmentation Pseudo Label masked by uncertainty')
     parser.add_argument('--T', type=float, default=0.5)
     parser.add_argument('--p_cutoff', type=float, default=0.5)
     parser.add_argument('--threshold', type=float, default=0.95)
