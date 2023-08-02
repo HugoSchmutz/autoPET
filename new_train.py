@@ -301,8 +301,7 @@ def main_worker(gpu, ngpus_per_node, args):
     
     # START TRAINING of FixMatch
     trainer = model.train
-    for epoch in range(args.epoch):
-        trainer(args, logger=logger)
+    trainer(args, logger=logger)
         
     if not args.multiprocessing_distributed or \
                 (args.multiprocessing_distributed and args.rank % ngpus_per_node == 0):

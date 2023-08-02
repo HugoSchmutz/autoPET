@@ -111,122 +111,123 @@ class SegPL:
         amp_cm = autocast if args.amp else contextlib.suppress #update for python3.6
         #amp_cm = autocast if args.amp else contextlib.nullcontext #original version
 
+        for epoch in range(args.epoch):
 
-        for (batch, batch_u) in zip(self.loader_dict['train_lb'], self.loader_dict['train_ulb']):
-            
-            # prevent the training iterations exceed args.num_train_iter
-            if self.it > args.num_train_iter:
-                break
-            if self.it == args.num_train_iter:
-                self.load_model(os.path.join(os.path.join(args.save_dir, args.save_name), 'model_best.pth'))
-                self.it = args.num_train_iter
-            end_batch.record()
-            torch.cuda.synchronize()
-            start_run.record()
-            
-            
-            
-            
-            x_lb, y_lb = prepare_batch(batch, args.gpu)
-            x_ulb, _ = prepare_batch(batch_u, args.gpu)
+            for (batch, batch_u) in zip(self.loader_dict['train_lb'], self.loader_dict['train_ulb']):
+                
+                # prevent the training iterations exceed args.num_train_iter
+                if self.it > args.num_train_iter:
+                    break
+                if self.it == args.num_train_iter:
+                    self.load_model(os.path.join(os.path.join(args.save_dir, args.save_name), 'model_best.pth'))
+                    self.it = args.num_train_iter
+                end_batch.record()
+                torch.cuda.synchronize()
+                start_run.record()
+                
+                
+                
+                
+                x_lb, y_lb = prepare_batch(batch, args.gpu)
+                x_ulb, _ = prepare_batch(batch_u, args.gpu)
 
-            num_lb = x_lb.shape[0]            
-            #weak and strong augmentations for labelled and unlabelled data
+                num_lb = x_lb.shape[0]            
+                #weak and strong augmentations for labelled and unlabelled data
 
-            inputs = torch.cat((x_lb, x_ulb))
-            # inference and calculate sup/unsup losses
-            with amp_cm():
-                logits = self.train_model(inputs)
-                logits_x_lb = logits[:num_lb]
-                logits_x_ulb = logits[num_lb:]
+                inputs = torch.cat((x_lb, x_ulb))
+                # inference and calculate sup/unsup losses
+                with amp_cm():
+                    logits = self.train_model(inputs)
+                    logits_x_lb = logits[:num_lb]
+                    logits_x_ulb = logits[num_lb:]
 
-                del logits
-                # hyper-params for update
-                p_cutoff = self.p_fn(self.it)
-                
-                # Supervised loss
-                if y_lb.sum()>0:
-                    sup_loss = self.supervised_loss(logits_x_lb, y_lb)
-                else:
-                    sup_loss = torch.zeros(1).cuda()
-                
-                #Unsupervised losses
-                probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb)
-                pseudo_labels = (probabilities>p_cutoff).long().detach()
-                if pseudo_labels.sum()>0:
-                    unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels)
-                else:
-                    unsup_loss = torch.zeros(1).cuda()
-                
-                probabilities = torch.nn.Softmax(dim=1)(logits_x_lb)
-                anti_pseudo_labels = (probabilities>p_cutoff).long().detach()
-                
-                if anti_pseudo_labels.sum()>0:
-                    anti_unsup_loss = self.unsupervised_loss(logits_x_lb, anti_pseudo_labels)
-                else:
-                    anti_unsup_loss = torch.zeros(1).cuda()
+                    del logits
+                    # hyper-params for update
+                    p_cutoff = self.p_fn(self.it)
                     
-                if args.debiased:
-                    total_loss = sup_loss + self.lambda_u * (unsup_loss - anti_unsup_loss)
-                else:
-                    total_loss = sup_loss + self.lambda_u * unsup_loss
-            del logits_x_lb, logits_x_ulb
+                    # Supervised loss
+                    if y_lb.sum()>0:
+                        sup_loss = self.supervised_loss(logits_x_lb, y_lb)
+                    else:
+                        sup_loss = torch.zeros(1).cuda()
+                    
+                    #Unsupervised losses
+                    probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb)
+                    pseudo_labels = (probabilities>p_cutoff).long().detach()
+                    if pseudo_labels.sum()>0:
+                        unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels)
+                    else:
+                        unsup_loss = torch.zeros(1).cuda()
+                    
+                    probabilities = torch.nn.Softmax(dim=1)(logits_x_lb)
+                    anti_pseudo_labels = (probabilities>p_cutoff).long().detach()
+                    
+                    if anti_pseudo_labels.sum()>0:
+                        anti_unsup_loss = self.unsupervised_loss(logits_x_lb, anti_pseudo_labels)
+                    else:
+                        anti_unsup_loss = torch.zeros(1).cuda()
                         
-            # parameter updates
-            if args.amp:
-                scaler.scale(total_loss).backward()
-                scaler.step(self.optimizer)
-                scaler.update()
-            else:
-                total_loss.backward()
-                self.optimizer.step()
-            if self.scheduler is not None: 
-                self.scheduler.step()
-            self.train_model.zero_grad()
-            
-            torch.cuda.empty_cache()
-            with torch.no_grad():
-                self._eval_model_update()
-            
-            end_run.record()
-            torch.cuda.synchronize()
-            
-            #tensorboard_dict update
-            tb_dict = {}
-            tb_dict['train/sup_loss'] = sup_loss.detach() 
-            tb_dict['train/unsup_loss'] = unsup_loss.detach() 
-            tb_dict['train/total_loss'] = total_loss.detach() 
-            tb_dict['train/anti_unsup_loss'] = anti_unsup_loss.detach() 
-            tb_dict['lr'] = self.optimizer.param_groups[0]['lr']
-            tb_dict['train/prefecth_time'] = start_batch.elapsed_time(end_batch)/1000.
-            tb_dict['train/run_time'] = start_run.elapsed_time(end_run)/1000.
-            
-            
-            if self.it % self.num_eval_iter == 0:
-
-                eval_dict = self.evaluate(args=args)
-                tb_dict.update(eval_dict)
+                    if args.debiased:
+                        total_loss = sup_loss + self.lambda_u * (unsup_loss - anti_unsup_loss)
+                    else:
+                        total_loss = sup_loss + self.lambda_u * unsup_loss
+                del logits_x_lb, logits_x_ulb
+                            
+                # parameter updates
+                if args.amp:
+                    scaler.scale(total_loss).backward()
+                    scaler.step(self.optimizer)
+                    scaler.update()
+                else:
+                    total_loss.backward()
+                    self.optimizer.step()
+                if self.scheduler is not None: 
+                    self.scheduler.step()
+                self.train_model.zero_grad()
                 
-                save_path = os.path.join(args.save_dir, args.save_name)
+                torch.cuda.empty_cache()
+                with torch.no_grad():
+                    self._eval_model_update()
                 
-                if tb_dict['eval/dice'].item() < best_eval_dice:
-                    best_eval_dice = tb_dict['eval/dice'].item()
-                    best_it = self.it
-                    self.save_model('model_best.pth', save_path)
-
-                self.print_fn(f"{self.it} iteration, USE_EMA: {hasattr(self, 'eval_model')}, {tb_dict}, BEST_EVAL_DICE: {best_eval_dice}, at {best_it} iters")
-            torch.cuda.empty_cache()
-            if not args.multiprocessing_distributed or \
-                    (args.multiprocessing_distributed and args.rank % ngpus_per_node == 0):
-
-                if not self.tb_log is None:
-                    self.tb_log.update(tb_dict, self.it)
+                end_run.record()
+                torch.cuda.synchronize()
                 
-            self.it +=1
-            del tb_dict
-            start_batch.record()
-            if self.it > 2**19:
-                self.num_eval_iter = 1000
+                #tensorboard_dict update
+                tb_dict = {}
+                tb_dict['train/sup_loss'] = sup_loss.detach() 
+                tb_dict['train/unsup_loss'] = unsup_loss.detach() 
+                tb_dict['train/total_loss'] = total_loss.detach() 
+                tb_dict['train/anti_unsup_loss'] = anti_unsup_loss.detach() 
+                tb_dict['lr'] = self.optimizer.param_groups[0]['lr']
+                tb_dict['train/prefecth_time'] = start_batch.elapsed_time(end_batch)/1000.
+                tb_dict['train/run_time'] = start_run.elapsed_time(end_run)/1000.
+                
+                
+                if self.it % self.num_eval_iter == 0:
+
+                    eval_dict = self.evaluate(args=args)
+                    tb_dict.update(eval_dict)
+                    
+                    save_path = os.path.join(args.save_dir, args.save_name)
+                    
+                    if tb_dict['eval/dice'].item() < best_eval_dice:
+                        best_eval_dice = tb_dict['eval/dice'].item()
+                        best_it = self.it
+                        self.save_model('model_best.pth', save_path)
+
+                    self.print_fn(f"{self.it} iteration, USE_EMA: {hasattr(self, 'eval_model')}, {tb_dict}, BEST_EVAL_DICE: {best_eval_dice}, at {best_it} iters")
+                torch.cuda.empty_cache()
+                if not args.multiprocessing_distributed or \
+                        (args.multiprocessing_distributed and args.rank % ngpus_per_node == 0):
+
+                    if not self.tb_log is None:
+                        self.tb_log.update(tb_dict, self.it)
+                    
+                self.it +=1
+                del tb_dict
+                start_batch.record()
+                if self.it > 2**19:
+                    self.num_eval_iter = 1000
         
         eval_dict = self.evaluate(args=args)
         eval_dict.update({'eval/best_dice': best_eval_dice, 'eval/best_it': best_it})
