@@ -83,7 +83,7 @@ class MaskedDiceCELoss(monai.losses.DiceCELoss):
         self.spatial_weighted = monai.losses.MaskedLoss(loss=super().forward)
 
 
-    def forward(self, input: torch.Tensor, target: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
+    def forward(self, input: torch.Tensor, target: torch.Tensor, mask: torch.Tensor ) -> torch.Tensor:
         """
         Args:
             input: the shape should be BNH[WD].
