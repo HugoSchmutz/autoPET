@@ -54,12 +54,22 @@ def train_ssl(model, optimizer, loss_function, ulb_loss_function, eval_function,
             #print(f'Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}, DC: {dice_sc:0.3f}, FP: {false_pos_vol:0.3f}, FN: {false_neg_vol:0.3f}')
             print(f'Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}')
 
-        
+"""
+def masked_cross_entropy():
+    if mask = None:
+        loss = -torch.mean(((torch.log(proba)*target) + (torch.log(1-proba)*(1-target))))
+    else:
+        loss = -(torch.sum(((torch.log(proba)*target) + (torch.log(1-proba)*(1-target)))*mask))/mask.sum()
+    return(loss)
+"""    
+   
 def set_loss(loss_name, to_onehot_y, softmax, include_background, batch):
     if loss_name == 'dice':
         loss = monai.losses.DiceLoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     elif loss_name == 'CEdice':
         loss = monai.losses.DiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
+    elif loss_name == 'CE':
+        loss = monai.losses.DiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, lambda_dice=1.0)
     return(loss)   
               
 def validation(model, gpu, loss_function, loader):

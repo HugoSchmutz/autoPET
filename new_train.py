@@ -161,7 +161,7 @@ def main_worker(gpu, ngpus_per_node, args):
                         logger=logger)
         #Set train losses
         model.set_supervised_loss('CEdice', to_onehot_y=False, softmax=True, include_background=False, batch=True)
-        model.set_unsupervised_loss('CEdice', to_onehot_y=False, softmax=True, include_background=False, batch=True)
+        model.set_unsupervised_loss('CE', to_onehot_y=False, softmax=True, include_background=False, batch=True)
     else:      
         model = CompleteCase(_net_builder,
                         args.num_classes,
