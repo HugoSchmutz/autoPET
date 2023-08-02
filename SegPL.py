@@ -200,17 +200,16 @@ class SegPL:
                 
                 save_path = os.path.join(args.save_dir, args.save_name)
                 
-                if tb_dict['eval/dice'] <= best_eval_dice:
-                    best_eval_dice = tb_dict['eval/dice']
+                if tb_dict['eval/dice'].item() < best_eval_dice:
+                    best_eval_dice = tb_dict['eval/dice'].item()
                     best_it = self.it
-                
+                    self.save_model('model_best.pth', save_path)
+
                 self.print_fn(f"{self.it} iteration, USE_EMA: {hasattr(self, 'eval_model')}, {tb_dict}, BEST_EVAL_DICE: {best_eval_dice}, at {best_it} iters")
             torch.cuda.empty_cache()
             if not args.multiprocessing_distributed or \
                     (args.multiprocessing_distributed and args.rank % ngpus_per_node == 0):
-                
-                if self.it == best_it:
-                    self.save_model('model_best.pth', save_path)
+
                 if not self.tb_log is None:
                     self.tb_log.update(tb_dict, self.it)
                 

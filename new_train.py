@@ -270,7 +270,7 @@ def main_worker(gpu, ngpus_per_node, args):
         patches_dict['train_lb'], batch_size=args.batch_size)
 
     loader_dict['train_ulb'] = torch.utils.data.DataLoader(
-        patches_dict['train_ulb'], batch_size=args.batch_size)
+        patches_dict['train_ulb'], batch_size=args.batch_size * args.uratio)
 
     loader_dict['eval'] = torch.utils.data.DataLoader(
         patches_dict['eval'], batch_size=args.validation_batch_size)
@@ -317,25 +317,24 @@ if __name__ == "__main__":
                         help='total number of training iterations')
     parser.add_argument('--num_iteration_finetuning', type=int, default=0, 
                         help='total number of finetuning iterations using DeFixmatch')
-    parser.add_argument('--num_eval_iter', type=int, default=100,
+    parser.add_argument('--num_eval_iter', type=int, default=1000,
                         help='evaluation frequency')
     parser.add_argument('--num_labels', type=int, default=200)
     parser.add_argument('--num_val', type=int, default=50)
     parser.add_argument('--num_test', type = int, default= 50)
     parser.add_argument('--batch_size', type=int, default=12,
                         help='total number of batch size of labeled data')
-    parser.add_argument('--uratio', type=int, default=7,
+    parser.add_argument('--uratio', type=int, default=2,
                         help='the ratio of unlabeled data to labeld data in each mini-batch')
     parser.add_argument('--validation_batch_size', type=int, default=24,
                         help='batch size of evaluation data loader (it does not affect the accuracy)')
-    parser.add_argument('--ulb_loss_ratio', type=float, default=1.0)
+    parser.add_argument('--ulb_loss_ratio', type=float, default=0.05)
     parser.add_argument('--patch_d0', type=int, default=128, help='patch size along the first dimension')
     parser.add_argument('--patch_d1', type=int, default=128, help='patch size along the second dimension')
     parser.add_argument('--patch_d2', type=int, default=32, help='patch size along the third dimension')
     parser.add_argument('--samples_per_volume', type=int, default=12)
     parser.add_argument('--max_queue_length', type=int, default=600)
     parser.add_argument('--SegPL', action='store_true', help='Segmentation Pseudo Label')
-    parser.add_argument('--lmbd', type=float, default = 1., help= 'Unlabelled loss weight')
     parser.add_argument('--T', type=float, default=0.5)
     parser.add_argument('--p_cutoff', type=float, default=0.95)
     parser.add_argument('--ema_m', type=float, default=0.999, help='ema momentum for eval_model')
