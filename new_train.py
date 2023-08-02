@@ -170,7 +170,7 @@ def main_worker(gpu, ngpus_per_node, args):
                         args.num_classes,
                         args.ema_m,
                         args.p_cutoff,
-                        args.threshold
+                        args.threshold,
                         args.ulb_loss_ratio,
                         num_eval_iter=args.num_eval_iter,
                         tb_log=tb_log,
