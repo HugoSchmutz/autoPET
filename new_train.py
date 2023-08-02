@@ -17,6 +17,7 @@ import torchio as tio
 from utils import net_builder, get_logger, count_parameters, get_ssl_dataset, standard_transform
 from SegPL import SegPL
 from CompleteCase import CompleteCase
+from SegPL_U import SegPL_U
 from train_utils import TBLog
 
 port_dict = {0:{1:8080, 2:8081, 3:8082, 4:8083, 5:8084}, 
@@ -58,6 +59,8 @@ def change_run_name(args):
     name = f'_{args.num_labels}_{args.ulb_loss_ratio}_{args.seed}'
     if args.SegPL:
         name = 'SegPL' + name
+    if args.SegPL_U:
+        name = 'SegPL_U' + name
     else:
         name = 'CC' + name
     if args.debiased:
@@ -160,8 +163,21 @@ def main_worker(gpu, ngpus_per_node, args):
                         tb_log=tb_log,
                         logger=logger)
         #Set train losses
-        model.set_supervised_loss('CEdice', to_onehot_y=False, softmax=True, include_background=False, batch=True)
-        model.set_unsupervised_loss('CE', to_onehot_y=False, softmax=True, include_background=False, batch=True)
+        model.set_supervised_loss(args.lb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True)
+        model.set_unsupervised_loss(args.ulb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True)
+    elif args.SegPL_U:      
+        model = SegPL_U(_net_builder,
+                        args.num_classes,
+                        args.ema_m,
+                        args.p_cutoff,
+                        args.threshold
+                        args.ulb_loss_ratio,
+                        num_eval_iter=args.num_eval_iter,
+                        tb_log=tb_log,
+                        logger=logger)
+        #Set train losses
+        model.set_supervised_loss(args.lb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True)
+        model.set_unsupervised_loss(args.ulb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True)
     else:      
         model = CompleteCase(_net_builder,
                         args.num_classes,
@@ -170,7 +186,7 @@ def main_worker(gpu, ngpus_per_node, args):
                         tb_log=tb_log,
                         logger=logger)
         #Set train losses
-        model.set_loss('CEdice', to_onehot_y=False, softmax=True, include_background=False, batch=True)
+        model.set_loss(args.lb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True)
 
     logger.info(f'Number of Trainable Params: {count_parameters(model.train_model)}')
     
@@ -336,7 +352,8 @@ if __name__ == "__main__":
     parser.add_argument('--max_queue_length', type=int, default=600)
     parser.add_argument('--SegPL', action='store_true', help='Segmentation Pseudo Label')
     parser.add_argument('--T', type=float, default=0.5)
-    parser.add_argument('--p_cutoff', type=float, default=0.95)
+    parser.add_argument('--p_cutoff', type=float, default=0.5)
+    parser.add_argument('--threshold', type=float, default=0.95)
     parser.add_argument('--ema_m', type=float, default=0.999, help='ema momentum for eval_model')
     parser.add_argument('--debiased', action='store_true')
     parser.add_argument('--hard_label', type=bool, default=True)
@@ -349,7 +366,8 @@ if __name__ == "__main__":
     parser.add_argument('--momentum', type=float, default=0.9)
     parser.add_argument('--weight_decay', type=float, default=5e-4)
     parser.add_argument('--amp', action='store_true', help='use mixed precision training or not')
-
+    parser.add_argument('--lb_loss_fct', type=str, default='DiceCE', help = 'Choose between DiceCE, Dice, CE')
+    parser.add_argument('--ulb_loss_fct', type=str, default='CE', help = 'Choose between DiceCE, Dice, CE, maskedDiceCE, maskedDice, maskedCE')
     '''
     Backbone Net Configurations
     '''

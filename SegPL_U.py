@@ -8,8 +8,8 @@ import monai
 from utils import prepare_batch, set_loss, Get_Scalar
 
 
-class SegPL:
-    def __init__(self, net_builder, num_classes, ema_m, p_cutoff, lambda_u,\
+class SegPL_U:
+    def __init__(self, net_builder, num_classes, ema_m, p_cutoff, threshold, lambda_u,\
                 it=0, num_eval_iter=1000, tb_log=None, logger=None):
         """
         class Fixmatch contains setter of data_loader, optimizer, and model update methods.
@@ -25,7 +25,7 @@ class SegPL:
             logger: logger (see utils.py)
         """
         
-        super(SegPL, self).__init__()
+        super(SegPL_U, self).__init__()
 
         # momentum update param
         self.loader = {}
@@ -40,6 +40,8 @@ class SegPL:
         self.eval_model = net_builder(num_classes=num_classes)
         self.num_eval_iter = num_eval_iter
         self.p_fn = Get_Scalar(p_cutoff) #confidence cutoff function
+        self.tau_fn = Get_Scalar(threshold) #confidence cutoff function
+
         self.lambda_u = lambda_u
         self.tb_log = tb_log
         
@@ -143,6 +145,7 @@ class SegPL:
                 del logits
                 # hyper-params for update
                 p_cutoff = self.p_fn(self.it)
+                threshold = self.tau_fn(self.it)
                 
                 # Supervised loss
                 if y_lb.sum()>0:
@@ -153,16 +156,19 @@ class SegPL:
                 #Unsupervised losses
                 probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb)
                 pseudo_labels = (probabilities>p_cutoff).long().detach()
+                
                 if pseudo_labels.sum()>0:
-                    unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels)
+                    mask_pl = (probabilities[:,1]>threshold).float() + (probabilities[:,0]>threshold)
+                    unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels, mask_pl)
                 else:
                     unsup_loss = torch.zeros(1).cuda()
-                
+                    
                 probabilities = torch.nn.Softmax(dim=1)(logits_x_lb)
                 anti_pseudo_labels = (probabilities>p_cutoff).long().detach()
                 
                 if anti_pseudo_labels.sum()>0:
-                    anti_unsup_loss = self.unsupervised_loss(logits_x_lb, anti_pseudo_labels)
+                    mask_anti_pl = (probabilities[:,1]>threshold).float() + (probabilities[:,0]>threshold)
+                    anti_unsup_loss = self.unsupervised_loss(logits_x_lb, anti_pseudo_labels, mask_anti_pl)
                 else:
                     anti_unsup_loss = torch.zeros(1).cuda()
                     
