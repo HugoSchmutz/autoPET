@@ -18,7 +18,6 @@ import cc3d
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data.sampler import BatchSampler
 import torch.distributed as dist
-from datasets.DistributedProxySampler import DistributedProxySampler
 
 voxel_vol = 0.012441020965576172
 
