@@ -335,8 +335,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_eval_iter', type=int, default=1000,
                         help='evaluation frequency')
     parser.add_argument('--num_labels', type=int, default=200)
-    parser.add_argument('--num_val', type=int, default=50)
-    parser.add_argument('--num_test', type = int, default= 50)
+    parser.add_argument('--num_val', type=int, default=20)
     parser.add_argument('--batch_size', type=int, default=12,
                         help='total number of batch size of labeled data')
     parser.add_argument('--uratio', type=int, default=2,
