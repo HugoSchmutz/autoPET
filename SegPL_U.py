@@ -161,7 +161,6 @@ class SegPL_U:
                     
                     if pseudo_labels.sum()>0:
                         mask_pl = (probabilities>threshold).long() + (probabilities<1 - threshold).long()
-                        print(mask_pl.shape)
                         unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels, mask=mask_pl[:,:1])
                     else:
                         unsup_loss = torch.zeros(1).cuda()
