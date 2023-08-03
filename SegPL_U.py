@@ -160,7 +160,7 @@ class SegPL_U:
                     
                     
                     if pseudo_labels.sum()>0:
-                        mask_pl = (probabilities[:,1]>threshold).float() + (probabilities[:,0]>threshold)
+                        mask_pl = (probabilities>threshold).long() + (probabilities<1 - threshold).long()
                         print(mask_pl.shape)
                         unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels, mask=mask_pl[:,:1])
                     else:
@@ -170,7 +170,7 @@ class SegPL_U:
                     anti_pseudo_labels = (probabilities>p_cutoff).long().detach()
                     
                     if anti_pseudo_labels.sum()>0:
-                        mask_anti_pl = (probabilities[:,1]>threshold).float() + (probabilities[:,0]>threshold)
+                        mask_anti_pl = (probabilities>threshold).long() + (probabilities<1 - threshold).long()
                         anti_unsup_loss = self.unsupervised_loss(logits_x_lb, anti_pseudo_labels, mask=mask_anti_pl[:,:1])
                     else:
                         anti_unsup_loss = torch.zeros(1).cuda()
