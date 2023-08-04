@@ -293,6 +293,7 @@ class SegPL:
                     eval_model.load_state_dict(checkpoint[key])
                 elif key == 'it':
                     self.it = checkpoint[key]
+                    print(self.it)
                 #elif key == 'scheduler':
                 #    self.scheduler.load_state_dict(checkpoint[key])
                 elif key == 'it' or key == 'scheduler':
