@@ -177,7 +177,7 @@ def get_exams(data_path, patients_list):
             paths_list.append(os.path.join(os.path.join(data_path, patient), exam))
     return(paths_list)
             
-def get_exams_train_test(data_path, num_eval):
+def get_exams_train(data_path, num_eval):
     #patients = os.listdir(data_path)
     patients = list(np.load(os.path.join(data_path+'positive_patients_train.npy')))
     patients_train, patients_test = train_test_split(patients, test_size = num_eval, random_state=0)
@@ -274,11 +274,24 @@ def get_logger(name, save_path=None, level='INFO'):
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
+def get_exams_test(data_path):
+    patients = list(np.load(os.path.join(data_path+'positive_patients_test.npy')))
+    all_paths_test, all_paths_test = get_exams(data_path, patients)
+    return(all_paths_test)
+
+def get_test_dataset(data_path, transform):
+    all_paths_test = get_exams_test(data_path)
+    subjects_test = subjects_list(all_paths_test)
+    
+    test_set = tio.SubjectsDataset(
+        subjects_test, transform=transform)
+    return(test_set)
+
 
 def get_ssl_dataset(data_path, num_labelled, num_eval, transform=standard_transform):
-    all_paths_train, all_paths_test = get_exams_train_test(data_path, num_eval)
+    all_paths_train, all_paths_eval = get_exams_train(data_path, num_eval)
     subjects_train = subjects_list(all_paths_train)
-    subjects_test = subjects_list(all_paths_test)
+    subjects_eval = subjects_list(all_paths_eval)
 
 
 
@@ -291,7 +304,7 @@ def get_ssl_dataset(data_path, num_labelled, num_eval, transform=standard_transf
         unlabelled_subjects, transform=transform)
 
     validation_set = tio.SubjectsDataset(
-        subjects_test, transform=transform)
+        subjects_eval, transform=transform)
     return(training_labelled_set, training_unlabelled_set, validation_set)
 
 
@@ -384,20 +397,4 @@ def masked_cross_entropy(predictions, labels, mask):
     return 1
 
 
-def get_sampler_by_name(name):
-    '''
-    get sampler in torch.utils.data.sampler by name
-    '''
-    sampler_name_list = sorted(name for name in torch.utils.data.sampler.__dict__ 
-                      if not name.startswith('_') and callable(sampler.__dict__[name]))
-    try:
-        if name == 'DistributedSampler':
-            return torch.utils.data.distributed.DistributedSampler
-        else:
-            return getattr(torch.utils.data.sampler, name)
-    except Exception as e:
-        print(repr(e))
-        print('[!] select sampler in:\t', sampler_name_list)
-        
-        
 

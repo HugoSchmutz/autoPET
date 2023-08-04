@@ -59,13 +59,15 @@ def change_run_name(args):
     name = f'_{args.num_labels}_{args.ulb_loss_ratio}_{args.seed}'
     if args.SegPL:
         name = 'SegPL' + name
-    if args.SegPL_U:
+    elif args.SegPL_U:
         name = 'SegPL_U' + name
     else:
         name = 'CC' + name
+        
     if args.debiased:
         name = 'De' + name
     return(name)
+
 def main(args):
     '''
     For (Distributed)DataParallelism,
