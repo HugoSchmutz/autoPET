@@ -19,7 +19,7 @@ import sys
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--load_path', type=str, default='./saved_models/CC_200_0.0.0/model_best.pth')
+    parser.add_argument('--load_path', type=str, default='./saved_models/CC_200_0.0.0/')
     parser.add_argument('--use_train_model', action='store_true')
 
     '''
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    checkpoint_path = os.path.join(args.load_path)
+    checkpoint_path = os.path.join(args.load_path, 'model_best.pth')
     checkpoint = torch.load(checkpoint_path)
     load_model = checkpoint['train_model'] if args.use_train_model else checkpoint['eval_model']
     
