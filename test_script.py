@@ -81,12 +81,12 @@ if __name__ == "__main__":
             dice_sc, false_pos_vol, false_neg_vol = compute_metrics(mask_out, data['segmentation'][tio.DATA][0,1])
             
             csv_header = ['dice_sc', 'false_pos_vol', 'false_neg_vol']
-            csv_rows = [dice_sc, false_pos_vol, false_neg_vol]
+            csv_rows = [[dice_sc], [false_pos_vol], [false_neg_vol]]
             print(csv_rows)
 
             with open(os.path.join(args.load_path,"metrics.csv"), "w", newline='') as f:
                 writer = csv.writer(f, delimiter=',')
                 writer.writerow(csv_header) 
-                writer.writerows(list(csv_rows))
+                writer.writerows(csv_rows)
         
 
