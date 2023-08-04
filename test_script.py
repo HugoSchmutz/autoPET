@@ -40,6 +40,12 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=20)
     parser.add_argument('--data_dir', type=str, default='./data/FDG-PET-CT-Lesions_nifti/')
     parser.add_argument('--num_classes', type=int, default=2)
+    
+    '''
+    GPU
+    '''
+    parser.add_argument('--gpu', default=None, type=int, help='GPU id to use.')
+    
     args = parser.parse_args()
     
     checkpoint_path = os.path.join(args.load_path)
