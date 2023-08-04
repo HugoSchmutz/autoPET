@@ -55,7 +55,7 @@ if __name__ == "__main__":
     net.eval()
     
     
-    test_set = get_test_dataset(args.data_path, standard_transform)
+    test_set = get_test_dataset(args.data_dir, standard_transform)
     
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=1, num_workers=0, collate_fn = list_data_collate)
  
