@@ -383,10 +383,10 @@ def dice_score(mask1,mask2):
 
 
 
-def compute_metrics(label, prediction):
+def compute_metrics(prediction, label):
     # main function
     gt_array = label.numpy()
-    pred_array = prediction.numpy()
+    pred_array = prediction
     false_neg_vol = false_neg_pix(gt_array, pred_array)*voxel_vol
     false_pos_vol = false_pos_pix(gt_array, pred_array)*voxel_vol
     dice_sc = dice_score(gt_array,pred_array)
