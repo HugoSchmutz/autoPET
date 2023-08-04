@@ -276,7 +276,7 @@ def count_parameters(model):
 
 def get_exams_test(data_path):
     patients = list(np.load(os.path.join(data_path+'positive_patients_test.npy')))
-    all_paths_test, all_paths_test = get_exams(data_path, patients)
+    all_paths_test = get_exams(data_path, patients)
     return(all_paths_test)
 
 def get_test_dataset(data_path, transform):
