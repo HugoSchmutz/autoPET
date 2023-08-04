@@ -291,8 +291,8 @@ class SegPL:
                     train_model.load_state_dict(checkpoint[key])
                 elif 'eval_model' in key:
                     eval_model.load_state_dict(checkpoint[key])
-                #elif key == 'it':
-                #    self.it = checkpoint[key]
+                elif key == 'it':
+                    self.it = checkpoint[key]
                 #elif key == 'scheduler':
                 #    self.scheduler.load_state_dict(checkpoint[key])
                 elif key == 'it' or key == 'scheduler':
