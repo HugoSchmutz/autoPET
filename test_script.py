@@ -77,8 +77,8 @@ if __name__ == "__main__":
             mask_out = torch.argmax(mask_out, dim=1).detach().cpu().numpy().squeeze()
             mask_out = mask_out.astype(np.uint8)               
             print("done inference")
-            print(mask_out.shape)
-            dice_sc, false_pos_vol, false_neg_vol = compute_metrics(mask_out, data['segmentation'][tio.DATA])
+            
+            dice_sc, false_pos_vol, false_neg_vol = compute_metrics(mask_out, data['segmentation'][tio.DATA][:,1])
             
             csv_header = ['dice_sc', 'false_pos_vol', 'false_neg_vol']
             print(csv_header)
