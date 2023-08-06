@@ -14,6 +14,7 @@ import pathlib as plb
 import cc3d
 import csv
 import sys
+from tqdm import tqdm
 
 
 if __name__ == "__main__":
@@ -68,7 +69,7 @@ if __name__ == "__main__":
 
     metrics = []    
     with torch.no_grad():
-        for i, data in enumerate(test_loader):
+        for i, data in enumerate(tqdm(test_loader)):
             roi_size = (128, 128, 32)
             sw_batch_size = 20
             
