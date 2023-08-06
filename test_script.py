@@ -90,11 +90,14 @@ if __name__ == "__main__":
             #    writer = csv.writer(f, delimiter=',')
             #    writer.writerow(csv_header) 
             #    writer.writerows(csv_rows)
-    
-    print(np.mean(metrics, axis=0))
+    mean_dice_sc = np.mean(metrics, axis=0)[0]
+    total_false_pos_vol = np.sum(metrics, axis=0)[1]
+    total_false_negvol = np.mean(metrics, axis=0)[2]
+    print(f'Mean Dice: {mean_dice_sc:0.3f}, False positive: {total_false_pos_vol:0.3f}, False negative: {total_false_negvol:0.3f}')
     
     with open(os.path.join(args.load_path,"metrics.csv"), "w", newline='') as f:
         csv_header = ['dice_sc', 'false_pos_vol', 'false_neg_vol']
         writer = csv.writer(f, delimiter=',')
         writer.writerow(csv_header) 
         writer.writerow(metrics)
+    
