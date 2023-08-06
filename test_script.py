@@ -115,19 +115,20 @@ if __name__ == "__main__":
     
     plt.figure()
     sns.histplot(data=res, x = 'false_pos_vol')
-    plt.savefig('false_pos_vol.pdf', format = 'pdf')
+    plt.savefig(os.path.join(args.load_path,'false_pos_vol.pdf'), format = 'pdf')
     
     plt.figure()
     sns.histplot(data=res, x = 'false_neg_vol')
-    plt.savefig('false_neg_vol.pdf', format = 'pdf')
+    plt.savefig(os.path.join(args.load_path,'false_neg_vol.pdf'), format = 'pdf')
     
     plt.figure()
     sns.histplot(data=res, x = 'dice_sc')
-    plt.savefig('dice_sc.pdf', format = 'pdf')
+    plt.savefig(os.path.join(args.load_path,'dice_sc.pdf'), format = 'pdf')
     
     plt.figure()
     sns.regplot(x="true_volume", y="predicted_volume", data=res)
-    plt.savefig('volume.pdf', format = 'pdf')
+    plt.title(np.corrcoef(res['predicted_volume'].values, res['true_volume'].values)[0,1])
+    plt.savefig(os.path.join(args.load_path,'volume.pdf'), format = 'pdf')
     print(np.corrcoef(res['predicted_volume'].values, res['true_volume'].values))
     
     
