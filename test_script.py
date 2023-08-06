@@ -102,7 +102,7 @@ if __name__ == "__main__":
     
     print(f'Mean Dice: {mean_dice_sc:0.3f}, False positive: {total_false_pos_vol:0.3f}, False negative: {total_false_negvol:0.3f}, Mean MSE volume: {mean_mse_volume:0.3f}')
     
-    
+    metrics = np.array(metrics)
     res= pd.DataFrame({'dice_sc':metrics[:,0],
                       'false_pos_vol':metrics[:,1], 
                       'false_neg_vol':metrics[:,2],
