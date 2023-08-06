@@ -11,9 +11,11 @@ from utils import net_builder, get_test_dataset, standard_transform, prepare_bat
 import numpy as np
 import nibabel as nib
 import pathlib as plb
-import cc3d
 import csv
+import pandas as pd
 import sys
+import matplotlib.pyplot as plt
+import seaborn as sns
 from tqdm import tqdm
 
 
@@ -80,9 +82,11 @@ if __name__ == "__main__":
             mask_out = mask_out.astype(np.uint8)               
             
             predicted_tumour_volume = mask_out.sum()
-            mse_volume = (predicted_tumour_volume - data['segmentation'][tio.DATA][0,1].sum())
+            true_volume = data['segmentation'][tio.DATA][0,1].sum()
+            mse_volume = (predicted_tumour_volume - true_volume)
+            
             dice_sc, false_pos_vol, false_neg_vol = compute_metrics(mask_out, data['segmentation'][tio.DATA][0,1])
-            metrics.append([dice_sc, false_pos_vol, false_neg_vol, predicted_tumour_volume, mse_volume])
+            metrics.append([dice_sc, false_pos_vol, false_neg_vol, predicted_tumour_volume, true_volume, mse_volume])
             
             #csv_rows = [[dice_sc, false_pos_vol, false_neg_vol]]
             #print(csv_rows)
@@ -98,9 +102,32 @@ if __name__ == "__main__":
     
     print(f'Mean Dice: {mean_dice_sc:0.3f}, False positive: {total_false_pos_vol:0.3f}, False negative: {total_false_negvol:0.3f}, Mean MSE volume: {mean_mse_volume:0.3f}')
     
-    with open(os.path.join(args.load_path,"metrics.csv"), "w", newline='') as f:
-        csv_header = ['dice_sc', 'false_pos_vol', 'false_neg_vol', 'predicted_volume', 'MSE']
-        writer = csv.writer(f, delimiter=',')
-        writer.writerow(csv_header) 
-        writer.writerow(metrics)
+    
+    res= pd.DataFrame({'dice_sc':metrics[:,0],
+                      'false_pos_vol':metrics[:,1], 
+                      'false_neg_vol':metrics[:,2],
+                      'predicted_volume':metrics[:,3],
+                      'true_volume':metrics[:,4],
+                      'MSE':metrics[:,5]
+                        })
+    
+    res.to_csv(os.path.join(args.load_path,"metrics.csv"))
+    
+    plt.figure()
+    sns.histplot(data=res, x = 'false_pos_vol')
+    plt.savefig('false_pos_vol.pdf', format = 'pdf')
+    
+    plt.figure()
+    sns.histplot(data=res, x = 'false_neg_vol')
+    plt.savefig('false_neg_vol.pdf', format = 'pdf')
+    
+    plt.figure()
+    sns.histplot(data=res, x = 'dice_sc')
+    plt.savefig('dice_sc.pdf', format = 'pdf')
+    
+    plt.figure()
+    sns.regplot(x="true_volume", y="predicted_volume", data=res)
+    plt.savefig('volume.pdf', format = 'pdf')
+    print(np.corrcoef(res['predicted_volume'].values, res['true_volume'].values))
+    
     
