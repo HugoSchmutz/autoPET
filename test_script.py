@@ -65,7 +65,8 @@ if __name__ == "__main__":
     
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=1, num_workers=0, collate_fn = list_data_collate)
  
- 
+
+    metrics = []    
     with torch.no_grad():
         for i, data in enumerate(test_loader):
             roi_size = (128, 128, 32)
@@ -79,14 +80,20 @@ if __name__ == "__main__":
             print("done inference")
             
             dice_sc, false_pos_vol, false_neg_vol = compute_metrics(mask_out, data['segmentation'][tio.DATA][0,1])
+            metrics.append([dice_sc, false_pos_vol, false_neg_vol])
             
-            csv_header = ['dice_sc', 'false_pos_vol', 'false_neg_vol']
-            csv_rows = [[dice_sc], [false_pos_vol], [false_neg_vol]]
-            print(csv_rows)
+            #csv_rows = [[dice_sc, false_pos_vol, false_neg_vol]]
+            #print(csv_rows)
 
-            with open(os.path.join(args.load_path,"metrics.csv"), "w", newline='') as f:
-                writer = csv.writer(f, delimiter=',')
-                writer.writerow(csv_header) 
-                writer.writerows(csv_rows)
-        
-
+            #with open(os.path.join(args.load_path,"metrics.csv"), "w", newline='') as f:
+            #    writer = csv.writer(f, delimiter=',')
+            #    writer.writerow(csv_header) 
+            #    writer.writerows(csv_rows)
+    
+    print(np.mean(metrics, axis=0))
+    
+    with open(os.path.join(args.load_path,"metrics.csv"), "w", newline='') as f:
+        csv_header = ['dice_sc', 'false_pos_vol', 'false_neg_vol']
+        writer = csv.writer(f, delimiter=',')
+        writer.writerow(csv_header) 
+        writer.wrtierow(metrics)
