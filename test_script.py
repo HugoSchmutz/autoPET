@@ -79,8 +79,10 @@ if __name__ == "__main__":
             mask_out = torch.argmax(mask_out, dim=1).detach().cpu().numpy().squeeze()
             mask_out = mask_out.astype(np.uint8)               
             
+            predicted_tumour_volume = mask_out.sum()
+            mse_volume = (predicted_tumour_volume - data['segmentation'][tio.DATA][0,1].sum())
             dice_sc, false_pos_vol, false_neg_vol = compute_metrics(mask_out, data['segmentation'][tio.DATA][0,1])
-            metrics.append([dice_sc, false_pos_vol, false_neg_vol])
+            metrics.append([dice_sc, false_pos_vol, false_neg_vol, predicted_tumour_volume, mse_volume])
             
             #csv_rows = [[dice_sc, false_pos_vol, false_neg_vol]]
             #print(csv_rows)
@@ -92,10 +94,12 @@ if __name__ == "__main__":
     mean_dice_sc = np.mean(metrics, axis=0)[0]
     total_false_pos_vol = np.sum(metrics, axis=0)[1]
     total_false_negvol = np.mean(metrics, axis=0)[2]
-    print(f'Mean Dice: {mean_dice_sc:0.3f}, False positive: {total_false_pos_vol:0.3f}, False negative: {total_false_negvol:0.3f}')
+    mean_mse_volume = np.mean(metrics, axis=0)[0]
+    
+    print(f'Mean Dice: {mean_dice_sc:0.3f}, False positive: {total_false_pos_vol:0.3f}, False negative: {total_false_negvol:0.3f}, Mean MSE volume: {mean_mse_volume:0.3f}')
     
     with open(os.path.join(args.load_path,"metrics.csv"), "w", newline='') as f:
-        csv_header = ['dice_sc', 'false_pos_vol', 'false_neg_vol']
+        csv_header = ['dice_sc', 'false_pos_vol', 'false_neg_vol', 'predicted_volume', 'MSE']
         writer = csv.writer(f, delimiter=',')
         writer.writerow(csv_header) 
         writer.writerow(metrics)
