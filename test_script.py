@@ -97,4 +97,4 @@ if __name__ == "__main__":
         csv_header = ['dice_sc', 'false_pos_vol', 'false_neg_vol']
         writer = csv.writer(f, delimiter=',')
         writer.writerow(csv_header) 
-        writer.wrtierow(metrics)
+        writer.writerow(metrics)
