@@ -78,7 +78,6 @@ if __name__ == "__main__":
             mask_out = sliding_window_inference(X, roi_size, sw_batch_size, net)
             mask_out = torch.argmax(mask_out, dim=1).detach().cpu().numpy().squeeze()
             mask_out = mask_out.astype(np.uint8)               
-            print("done inference")
             
             dice_sc, false_pos_vol, false_neg_vol = compute_metrics(mask_out, data['segmentation'][tio.DATA][0,1])
             metrics.append([dice_sc, false_pos_vol, false_neg_vol])
