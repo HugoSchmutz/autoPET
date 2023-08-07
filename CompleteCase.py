@@ -6,7 +6,8 @@ import torch.nn.functional as F
 from torch.cuda.amp import autocast, GradScaler
 import monai
 from utils import prepare_batch, set_loss, Get_Scalar
-
+import numpy as np
+from monai.inferers import sliding_window_inference
 
 class CompleteCase:
     def __init__(self, net_builder, num_classes, ema_m,\
@@ -204,20 +205,19 @@ class CompleteCase:
         if eval_loader is None:
             eval_loader = self.loader_dict['eval']
         
-        total_dice = 0.0
-        total_num = 0.0
-    
+        total_dice = []
+        roi_size = (128, 128, 32)
+        sw_batch_size = 20
+
         for batch in eval_loader:
             x, y = prepare_batch(batch, args.gpu)
-            num_batch = x.shape[0]
-            total_num += num_batch
-            logits = eval_model(x)
-            dice = self.dice_loss(logits, y)
-            total_dice += dice.detach()*num_batch        
+            logits = sliding_window_inference(x, roi_size, sw_batch_size, eval_model)
+            dice = self.dice_loss(logits, y).detach().cpu().item()
+            total_dice.append(dice)        
         if not use_ema:
             eval_model.train()
             
-        return {'eval/dice': total_dice/total_num}
+        return {'eval/dice': np.mean(total_dice)}
 
     
     
