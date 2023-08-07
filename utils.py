@@ -177,9 +177,9 @@ def get_exams(data_path, patients_list):
             paths_list.append(os.path.join(os.path.join(data_path, patient), exam))
     return(paths_list)
             
-def get_exams_train(data_path, num_eval):
+def get_exams_train(data_path, patients_list_dir, num_eval):
     #patients = os.listdir(data_path)
-    patients = list(np.load(os.path.join(data_path+'positive_patients_train.npy')))
+    patients = list(np.load(os.path.join(patients_list_dir,'positive_patients_train.npy')))
     patients_train, patients_test = train_test_split(patients, test_size = num_eval, random_state=0)
     all_paths_train, all_paths_test = get_exams(data_path, patients_train), get_exams(data_path,patients_test)
 
@@ -274,13 +274,13 @@ def get_logger(name, save_path=None, level='INFO'):
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-def get_exams_test(data_path):
-    patients = list(np.load(os.path.join(data_path+'positive_patients_test.npy')))
+def get_exams_test(data_path, patients_list_dir):
+    patients = list(np.load(os.path.join(patients_list_dir,'positive_patients_test.npy')))
     all_paths_test = get_exams(data_path, patients)
     return(all_paths_test)
 
-def get_test_dataset(data_path, transform):
-    all_paths_test = get_exams_test(data_path)
+def get_test_dataset(data_path, patients_list_dir, transform):
+    all_paths_test = get_exams_test(data_path, patients_list_dir)
     subjects_test = subjects_list(all_paths_test)
     
     test_set = tio.SubjectsDataset(
@@ -288,8 +288,8 @@ def get_test_dataset(data_path, transform):
     return(test_set)
 
 
-def get_ssl_dataset(data_path, num_labelled, num_eval, transform=standard_transform):
-    all_paths_train, all_paths_eval = get_exams_train(data_path, num_eval)
+def get_ssl_dataset(data_path, patients_list_dir, num_labelled, num_eval, transform=standard_transform):
+    all_paths_train, all_paths_eval = get_exams_train(data_path, patients_list_dir, num_eval)
     subjects_train = subjects_list(all_paths_train)
     subjects_eval = subjects_list(all_paths_eval)
 

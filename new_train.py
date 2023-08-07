@@ -245,6 +245,7 @@ def main_worker(gpu, ngpus_per_node, args):
     sampler = tio.data.UniformSampler(patch_size)
 
     lb_dset, ulb_dset, eval_dset = get_ssl_dataset(args.data_dir, 
+                                                   args.patients_list_dir,
                                                    args.num_labels,
                                                    args.num_val, 
                                                    transform=standard_transform)
@@ -377,6 +378,7 @@ if __name__ == "__main__":
     Data Configurations
     '''
     parser.add_argument('--data_dir', type=str, default='./data/FDG-PET-CT-Lesions_nifti/')
+    parser.add_argument('--patients_list_dir', type=str, default='./data/FDG-PET-CT-Lesions_nifti/')
     parser.add_argument('--train_sampler', type=str, default='RandomSampler')
     parser.add_argument('--num_classes', type=int, default=2)
     parser.add_argument('--num_workers', type=int, default=6)
