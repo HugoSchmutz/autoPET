@@ -11,6 +11,8 @@ import torch.distributed as dist
 import torch.multiprocessing as mp
 import socket
 
+from monai.data import list_data_collate
+
 
 import torchio as tio
 
@@ -274,15 +276,7 @@ def main_worker(gpu, ngpus_per_node, args):
         shuffle_patches=True,
     )
 
-    patches_dict['eval'] = tio.Queue(
-        subjects_dataset=dset_dict['eval'],
-        max_length=args.max_queue_length,
-        samples_per_volume=args.samples_per_volume,
-        sampler=sampler,
-        num_workers=args.num_workers,
-        shuffle_subjects=False,
-        shuffle_patches=False,
-    )
+
 
     loader_dict['train_lb'] = torch.utils.data.DataLoader(
         patches_dict['train_lb'], batch_size=args.batch_size)
@@ -290,8 +284,7 @@ def main_worker(gpu, ngpus_per_node, args):
     loader_dict['train_ulb'] = torch.utils.data.DataLoader(
         patches_dict['train_ulb'], batch_size=args.batch_size * args.uratio)
 
-    loader_dict['eval'] = torch.utils.data.DataLoader(
-        patches_dict['eval'], batch_size=args.validation_batch_size)
+    loader_dict['eval'] = torch.utils.data.DataLoader(eval_dset, batch_size=1, num_workers=0, collate_fn = list_data_collate)
 
 
     ## set DataLoader on SegPL
