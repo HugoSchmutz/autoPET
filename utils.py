@@ -403,7 +403,7 @@ def compute_metrics(prediction, label):
 def write_list(name_file, a_list):
     # store list in binary file so 'wb' mode
     with open(name_file, 'wb') as fp:
-        pickle.dump(names, fp)
+        pickle.dump(a_list, fp)
         print('Done writing list into a binary file')
 
 # Read list to memory
