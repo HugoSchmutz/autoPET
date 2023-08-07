@@ -19,7 +19,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data.sampler import BatchSampler
 import torch.distributed as dist
 from typing import Any
-
+import pickle
 
 voxel_vol = 0.012441020965576172
 
@@ -397,3 +397,18 @@ def compute_metrics(prediction, label):
 
 
 
+# Python program to store list to file using pickle module
+
+# write list to binary file
+def write_list(name_file, a_list):
+    # store list in binary file so 'wb' mode
+    with open(name_file, 'wb') as fp:
+        pickle.dump(names, fp)
+        print('Done writing list into a binary file')
+
+# Read list to memory
+def read_list(name_file):
+    # for reading also binary mode is important
+    with open(name_file, 'rb') as fp:
+        n_list = pickle.load(fp)
+        return n_list
