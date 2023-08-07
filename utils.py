@@ -364,7 +364,7 @@ def false_pos_pix(gt_array,pred_array):
 def false_neg_pix(gt_array,pred_array):
     # compute number of voxels of false negative connected components (of the ground truth mask) in the prediction mask
     gt_conn_comp = con_comp(gt_array)
-
+    print(gt_conn_comp.max())
     false_neg = 0
     for idx in range(1,gt_conn_comp.max()+1):
         comp_mask = np.isin(gt_conn_comp, idx)
