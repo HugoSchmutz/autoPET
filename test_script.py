@@ -7,7 +7,7 @@ import torchio as tio
 from monai.data import list_data_collate
 
 from monai.inferers import sliding_window_inference
-from utils import net_builder, get_test_dataset, standard_transform, prepare_batch, compute_metrics
+from utils import net_builder, get_test_dataset, standard_transform, prepare_batch, compute_metrics, voxel_vol
 import numpy as np
 import nibabel as nib
 import pathlib as plb
@@ -81,12 +81,12 @@ if __name__ == "__main__":
             mask_out = torch.argmax(mask_out, dim=1).detach().cpu().numpy().squeeze()
             mask_out = mask_out.astype(np.uint8)               
             
-            predicted_tumour_volume = mask_out.sum()
-            true_volume = data['segmentation'][tio.DATA][0,1].sum()
+            predicted_tumour_volume = mask_out.sum() * voxel_vol
+            true_volume = data['segmentation'][tio.DATA][0,1].sum() * voxel_vol
             mse_volume = (predicted_tumour_volume - true_volume)
             
-            dice_sc, false_pos_vol, false_neg_vol = compute_metrics(mask_out, data['segmentation'][tio.DATA][0,1])
-            metrics.append([dice_sc, false_pos_vol, false_neg_vol, predicted_tumour_volume, true_volume, mse_volume])
+            dice_sc, false_pos_vol, false_neg_vol, true_nb_lesions, pred_nb_lesions = compute_metrics(mask_out, data['segmentation'][tio.DATA][0,1])
+            metrics.append([dice_sc, false_pos_vol, false_neg_vol, predicted_tumour_volume, true_volume, mse_volume, true_nb_lesions, pred_nb_lesions])
             
             #csv_rows = [[dice_sc, false_pos_vol, false_neg_vol]]
             #print(csv_rows)
@@ -108,7 +108,9 @@ if __name__ == "__main__":
                       'false_neg_vol':metrics[:,2],
                       'predicted_volume':metrics[:,3],
                       'true_volume':metrics[:,4],
-                      'MSE':metrics[:,5]
+                      'MSE':metrics[:,5],
+                      'true_nb_lesions': metrics[:,6], 
+                      'pred_nb_lesions': metrics[:,7]
                         })
     
     res.to_csv(os.path.join(args.load_path,"metrics.csv"))
@@ -130,5 +132,11 @@ if __name__ == "__main__":
     plt.title(np.corrcoef(res['predicted_volume'].values, res['true_volume'].values)[0,1])
     plt.savefig(os.path.join(args.load_path,'volume.pdf'), format = 'pdf')
     print(np.corrcoef(res['predicted_volume'].values, res['true_volume'].values))
+    
+    plt.figure()
+    sns.regplot(x="true_nb_lesions", y="pred_nb_lesions", data=res)
+    plt.title(np.corrcoef(res['true_nb_lesions'].values, res['pred_nb_lesions'].values)[0,1])
+    plt.savefig(os.path.join(args.load_path,'nb_lesions.pdf'), format = 'pdf')
+    print(np.corrcoef(res['true_nb_lesions'].values, res['pred_nb_lesions'].values))
     
     

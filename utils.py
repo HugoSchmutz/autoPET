@@ -351,27 +351,27 @@ def con_comp(seg_array):
 def false_pos_pix(gt_array,pred_array):
     # compute number of voxels of false positive connected components in prediction mask
     pred_conn_comp = con_comp(pred_array)
-    
+    pred_nb_lesions = pred_conn_comp.max()
     false_pos = 0
     for idx in range(1,pred_conn_comp.max()+1):
         comp_mask = np.isin(pred_conn_comp, idx)
         if (comp_mask*gt_array).sum() == 0:
             false_pos = false_pos+comp_mask.sum()
-    return false_pos
+    return false_pos, pred_nb_lesions
 
 
 
 def false_neg_pix(gt_array,pred_array):
     # compute number of voxels of false negative connected components (of the ground truth mask) in the prediction mask
     gt_conn_comp = con_comp(gt_array)
-    print(gt_conn_comp.max())
+    true_nb_lesions = gt_conn_comp.max()
     false_neg = 0
     for idx in range(1,gt_conn_comp.max()+1):
         comp_mask = np.isin(gt_conn_comp, idx)
         if (comp_mask*pred_array).sum() == 0:
             false_neg = false_neg+comp_mask.sum()
             
-    return false_neg
+    return false_neg, true_nb_lesions
 
 
 def dice_score(mask1,mask2):
@@ -388,14 +388,12 @@ def compute_metrics(prediction, label):
     gt_array = label.numpy()
     pred_array = prediction
 
-    false_neg_vol = false_neg_pix(gt_array, pred_array)*voxel_vol
-    false_pos_vol = false_pos_pix(gt_array, pred_array)*voxel_vol
+    false_neg_vol, true_nb_lesions = false_neg_pix(gt_array, pred_array)
+    false_pos_vol, pred_nb_lesions = false_pos_pix(gt_array, pred_array)
     dice_sc = dice_score(gt_array,pred_array)
-    return dice_sc, false_pos_vol, false_neg_vol
+    return dice_sc, false_pos_vol*voxel_vol, false_neg_vol*voxel_vol, true_nb_lesions, pred_nb_lesions
 
 
-def masked_cross_entropy(predictions, labels, mask):
-    return 1
 
 
 
