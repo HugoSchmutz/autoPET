@@ -79,7 +79,7 @@ def main(args):
     save_path = os.path.join(args.save_dir, args.save_name)
     if os.path.exists(save_path) and not args.overwrite:
         raise Exception('already existing model: {}'.format(save_path))
-    if args.resume:
+    if args.resume or args.finetune:
         if args.load_path is None:
             raise Exception('Resume of training requires --load_path in the args')
         if os.path.abspath(save_path) == os.path.abspath(args.load_path) and not args.overwrite:
@@ -292,9 +292,9 @@ def main_worker(gpu, ngpus_per_node, args):
     model.set_data_loader(loader_dict)
     
     #If args.resume, load checkpoints from args.load_path
-    if args.resume:
+    if args.resume or args.finetune:
         model.load_model(args.load_path)
-    
+    if args.finetune: model.it = 0
     # START TRAINING of FixMatch
     trainer = model.train
     trainer(args, logger=logger)
@@ -317,6 +317,8 @@ if __name__ == "__main__":
     parser.add_argument('--save_dir', type=str, default='./saved_models')
     parser.add_argument('--save_name', type=str, default='completecase')
     parser.add_argument('--resume', action='store_true')
+    parser.add_argument('--finetune', action='store_true')
+
     parser.add_argument('--load_path', type=str, default=None)
     parser.add_argument('--overwrite', action='store_true')
 
@@ -324,7 +326,7 @@ if __name__ == "__main__":
     Training Configuration of training
     '''
     parser.add_argument('--epoch', type=int, default=1000)
-    parser.add_argument('--num_train_iter', type=int, default=80000, 
+    parser.add_argument('--num_train_iter', type=int, default=20000, 
                         help='total number of training iterations')
     parser.add_argument('--num_iteration_finetuning', type=int, default=0, 
                         help='total number of finetuning iterations using DeFixmatch')
@@ -332,7 +334,7 @@ if __name__ == "__main__":
                         help='evaluation frequency')
     parser.add_argument('--num_labels', type=int, default=200)
     parser.add_argument('--num_val', type=int, default=20)
-    parser.add_argument('--batch_size', type=int, default=12,
+    parser.add_argument('--batch_size', type=int, default=24,
                         help='total number of batch size of labeled data')
     parser.add_argument('--uratio', type=int, default=2,
                         help='the ratio of unlabeled data to labeld data in each mini-batch')
@@ -343,7 +345,7 @@ if __name__ == "__main__":
     parser.add_argument('--patch_d1', type=int, default=128, help='patch size along the second dimension')
     parser.add_argument('--patch_d2', type=int, default=32, help='patch size along the third dimension')
     parser.add_argument('--samples_per_volume', type=int, default=10)
-    parser.add_argument('--max_queue_length', type=int, default=500)
+    parser.add_argument('--max_queue_length', type=int, default=600)
     parser.add_argument('--SegPL', action='store_true', help='Segmentation Pseudo Label')
     parser.add_argument('--SegPL_U', action='store_true', help='Segmentation Pseudo Label masked by uncertainty')
     parser.add_argument('--T', type=float, default=0.5)

@@ -207,7 +207,7 @@ class CompleteCase:
         
         total_dice = []
         roi_size = (128, 128, 32)
-        sw_batch_size = 20
+        sw_batch_size = 40
 
         for batch in eval_loader:
             x, y = prepare_batch(batch, args.gpu)

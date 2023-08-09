@@ -56,14 +56,7 @@ def train_ssl(model, optimizer, loss_function, ulb_loss_function, eval_function,
             #print(f'Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}, DC: {dice_sc:0.3f}, FP: {false_pos_vol:0.3f}, FN: {false_neg_vol:0.3f}')
             print(f'Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}')
 
-"""
-def masked_cross_entropy():
-    if mask = None:
-        loss = -torch.mean(((torch.log(proba)*target) + (torch.log(1-proba)*(1-target))))
-    else:
-        loss = -(torch.sum(((torch.log(proba)*target) + (torch.log(1-proba)*(1-target)))*mask))/mask.sum()
-    return(loss)
-"""    
+
 
 class MaskedDiceCELoss(monai.losses.DiceCELoss):
     """
@@ -393,22 +386,3 @@ def compute_metrics(prediction, label):
     dice_sc = dice_score(gt_array,pred_array)
     return dice_sc, false_pos_vol*voxel_vol, false_neg_vol*voxel_vol, true_nb_lesions, pred_nb_lesions
 
-
-
-
-
-# Python program to store list to file using pickle module
-
-# write list to binary file
-def write_list(name_file, a_list):
-    # store list in binary file so 'wb' mode
-    with open(name_file, 'wb') as fp:
-        pickle.dump(a_list, fp)
-        print('Done writing list into a binary file')
-
-# Read list to memory
-def read_list(name_file):
-    # for reading also binary mode is important
-    with open(name_file, 'rb') as fp:
-        n_list = pickle.load(fp)
-        return n_list
