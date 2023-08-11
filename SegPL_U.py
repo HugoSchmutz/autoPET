@@ -6,6 +6,9 @@ import torch.nn.functional as F
 from torch.cuda.amp import autocast, GradScaler
 import monai
 from utils import prepare_batch, set_loss, Get_Scalar
+import numpy as np
+from monai.inferers import sliding_window_inference
+
 
 
 class SegPL_U:
@@ -153,18 +156,34 @@ class SegPL_U:
                         sup_loss = self.supervised_loss(logits_x_lb, y_lb)
                     else:
                         sup_loss = torch.zeros(1).cuda()
-                    
+                
+                    if args.mean_teacher:
+                        with torch.no_grad():
+                            logits_ema = self.eval_model(inputs)
+                            logits_x_lb_ema = logits_ema[:num_lb]
+                            logits_x_ulb_ema = logits_ema[num_lb:]
+                        del logits_ema
+                        
                     #Unsupervised losses
-                    probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb)
-                    pseudo_labels = (probabilities>p_cutoff).long().detach()
-                    
+                    if args.mean_teacher:
+                        probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb_ema)
+                    else:   
+                        probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb)
+                        
+                    pseudo_labels = (probabilities>p_cutoff).long().detach()                    
                     
                     if pseudo_labels.sum()>0:
                         mask_pl = (probabilities>threshold).long() + (probabilities<1 - threshold).long()
                         unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels, mask=mask_pl[:,:1])
                     else:
                         unsup_loss = torch.zeros(1).cuda()
-                        
+                    
+                    
+                    #Debaised Unsupervised losses
+                    if args.mean_teacher:
+                        probabilities = torch.nn.Softmax(dim=1)(logits_x_lb_ema)
+                    else:   
+                        probabilities = torch.nn.Softmax(dim=1)(logits_x_lb)    
                     probabilities = torch.nn.Softmax(dim=1)(logits_x_lb)
                     anti_pseudo_labels = (probabilities>p_cutoff).long().detach()
                     
@@ -250,20 +269,19 @@ class SegPL_U:
         if eval_loader is None:
             eval_loader = self.loader_dict['eval']
         
-        total_dice = 0.0
-        total_num = 0.0
-    
+        total_dice = []
+        roi_size = (128, 128, 32)
+        sw_batch_size = 40
+
         for batch in eval_loader:
             x, y = prepare_batch(batch, args.gpu)
-            num_batch = x.shape[0]
-            total_num += num_batch
-            logits = eval_model(x)
-            dice = self.dice_loss(logits, y)
-            total_dice += dice.detach()*num_batch        
+            logits = sliding_window_inference(x, roi_size, sw_batch_size, eval_model)
+            dice = self.dice_loss(logits, y).detach().cpu().item()
+            total_dice.append(dice)        
         if not use_ema:
             eval_model.train()
             
-        return {'eval/dice': total_dice/total_num}
+        return {'eval/dice': np.mean(total_dice)}
 
     
     

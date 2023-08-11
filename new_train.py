@@ -68,6 +68,8 @@ def change_run_name(args):
         
     if args.debiased:
         name = 'De' + name
+    if args.finetune:
+        name = 'FT' + name
     return(name)
 
 def main(args):
@@ -346,16 +348,21 @@ if __name__ == "__main__":
     parser.add_argument('--patch_d2', type=int, default=32, help='patch size along the third dimension')
     parser.add_argument('--samples_per_volume', type=int, default=10)
     parser.add_argument('--max_queue_length', type=int, default=600)
-    parser.add_argument('--SegPL', action='store_true', help='Segmentation Pseudo Label')
-    parser.add_argument('--SegPL_U', action='store_true', help='Segmentation Pseudo Label masked by uncertainty')
+
     parser.add_argument('--T', type=float, default=0.5)
     parser.add_argument('--p_cutoff', type=float, default=0.5)
     parser.add_argument('--threshold', type=float, default=0.95)
     parser.add_argument('--ema_m', type=float, default=0.999, help='ema momentum for eval_model')
-    parser.add_argument('--debiased', action='store_true')
     parser.add_argument('--hard_label', type=bool, default=True)
 
+    """
+    SSL Configuration
+    """
 
+    parser.add_argument('--debiased', action='store_true')
+    parser.add_argument('--mean_teacher', action='store_true', help='generation of pseudo-labels with mean teacher')
+    parser.add_argument('--SegPL', action='store_true', help='Segmentation Pseudo Label')
+    parser.add_argument('--SegPL_U', action='store_true', help='Segmentation Pseudo Label masked by uncertainty')
     '''
     Optimizer configurations
     '''

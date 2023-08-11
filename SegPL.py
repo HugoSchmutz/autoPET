@@ -153,15 +153,31 @@ class SegPL:
                     else:
                         sup_loss = torch.zeros(1).cuda()
                     
+                    
+                    if args.mean_teacher:
+                        with torch.no_grad():
+                            logits_ema = self.eval_model(inputs)
+                            logits_x_lb_ema = logits_ema[:num_lb]
+                            logits_x_ulb_ema = logits_ema[num_lb:]
+                    del logits_ema
+
                     #Unsupervised losses
-                    probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb)
+                    if args.mean_teacher:
+                        probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb_ema)
+                    else:   
+                        probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb)
+                        
                     pseudo_labels = (probabilities>p_cutoff).long().detach()
                     if pseudo_labels.sum()>0:
                         unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels)
                     else:
                         unsup_loss = torch.zeros(1).cuda()
                     
-                    probabilities = torch.nn.Softmax(dim=1)(logits_x_lb)
+                    #Debaised Unsupervised losses
+                    if args.mean_teacher:
+                        probabilities = torch.nn.Softmax(dim=1)(logits_x_lb_ema)
+                    else:   
+                        probabilities = torch.nn.Softmax(dim=1)(logits_x_lb)
                     anti_pseudo_labels = (probabilities>p_cutoff).long().detach()
                     
                     if anti_pseudo_labels.sum()>0:
