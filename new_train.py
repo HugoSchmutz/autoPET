@@ -66,10 +66,13 @@ def change_run_name(args):
     else:
         name = 'CC' + name
         
+    
+    if args.mean_teacher:
+        name = 'MT_' + name
     if args.debiased:
         name = 'De' + name
     if args.finetune:
-        name = 'FT' + name
+        name = 'FT_' + name
     return(name)
 
 def main(args):
