@@ -331,11 +331,11 @@ if __name__ == "__main__":
     Training Configuration of training
     '''
     parser.add_argument('--epoch', type=int, default=1000)
-    parser.add_argument('--num_train_iter', type=int, default=20000, 
+    parser.add_argument('--num_train_iter', type=int, default=15000, 
                         help='total number of training iterations')
     parser.add_argument('--num_iteration_finetuning', type=int, default=0, 
                         help='total number of finetuning iterations using DeFixmatch')
-    parser.add_argument('--num_eval_iter', type=int, default=1000,
+    parser.add_argument('--num_eval_iter', type=int, default=500,
                         help='evaluation frequency')
     parser.add_argument('--num_labels', type=int, default=200)
     parser.add_argument('--num_val', type=int, default=20)
@@ -354,8 +354,8 @@ if __name__ == "__main__":
 
     parser.add_argument('--T', type=float, default=0.5)
     parser.add_argument('--p_cutoff', type=float, default=0.5)
-    parser.add_argument('--threshold', type=float, default=0.95)
-    parser.add_argument('--ema_m', type=float, default=0.999, help='ema momentum for eval_model')
+    parser.add_argument('--threshold', type=float, default=0.80)
+    parser.add_argument('--ema_m', type=float, default=0.99, help='ema momentum for eval_model')
     parser.add_argument('--hard_label', type=bool, default=True)
 
     """
@@ -371,7 +371,7 @@ if __name__ == "__main__":
     '''
     parser.add_argument('--learning_rate', type=float, default=1e-4)
     parser.add_argument('--momentum', type=float, default=0.9)
-    parser.add_argument('--weight_decay', type=float, default=5e-4)
+    parser.add_argument('--weight_decay', type=float, default=1e-4)
     parser.add_argument('--amp', action='store_true', help='use mixed precision training or not')
     parser.add_argument('--lb_loss_fct', type=str, default='DiceCE', help = 'Choose between DiceCE, Dice, CE')
     parser.add_argument('--ulb_loss_fct', type=str, default='CE', help = 'Choose between DiceCE, Dice, CE, maskedDiceCE, maskedDice, maskedCE')

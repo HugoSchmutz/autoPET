@@ -130,11 +130,8 @@ class CompleteCase:
                 with amp_cm():
                     logits = self.train_model(inputs)                
                     # Supervised loss
-                    if y.sum()>0:
-                        total_loss = self.loss(logits, y)
-                    else:
-                        total_loss = torch.zeros(1).cuda()
-                            
+                    total_loss = self.loss(logits, y)
+                    
                 # parameter updates
                 if args.amp:
                     scaler.scale(total_loss).backward()
@@ -157,12 +154,10 @@ class CompleteCase:
                 #tensorboard_dict update
                 tb_dict = {}
                 tb_dict['train/sup_loss'] = total_loss.detach() 
-                tb_dict['train/unsup_loss'] = 0
                 tb_dict['train/total_loss'] = total_loss.detach() 
-                tb_dict['train/anti_unsup_loss'] = 0
                 tb_dict['lr'] = self.optimizer.param_groups[0]['lr']
-                tb_dict['train/prefecth_time'] = start_batch.elapsed_time(end_batch)/1000.
-                tb_dict['train/run_time'] = start_run.elapsed_time(end_run)/1000.
+                #tb_dict['train/prefecth_time'] = start_batch.elapsed_time(end_batch)/1000.
+                #tb_dict['train/run_time'] = start_run.elapsed_time(end_run)/1000.
                 
                 
                 if self.it % self.num_eval_iter == 0:
@@ -192,7 +187,7 @@ class CompleteCase:
                     self.num_eval_iter = 1000
         
         eval_dict = self.evaluate(args=args)
-        eval_dict.update({'eval/best_dice': best_eval_dice, 'eval/best_it': best_it})
+        eval_dict.update({'eval/best_dice_loss': best_eval_dice, 'eval/best_it': best_it})
         return eval_dict
             
             

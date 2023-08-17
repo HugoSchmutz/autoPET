@@ -148,11 +148,7 @@ class SegPL:
                     p_cutoff = self.p_fn(self.it)
                     
                     # Supervised loss
-                    if y_lb.sum()>0:
-                        sup_loss = self.supervised_loss(logits_x_lb, y_lb)
-                    else:
-                        sup_loss = torch.zeros(1).cuda()
-                    
+                    sup_loss = self.supervised_loss(logits_x_lb, y_lb)
                     
                     if args.mean_teacher:
                         with torch.no_grad():
@@ -168,10 +164,9 @@ class SegPL:
                         probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb)
                         
                     pseudo_labels = (probabilities>p_cutoff).long().detach()
-                    if pseudo_labels.sum()>0:
-                        unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels)
-                    else:
-                        unsup_loss = torch.zeros(1).cuda()
+                    
+                    unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels)
+
                     
                     #Debaised Unsupervised losses
                     if args.mean_teacher:
@@ -180,10 +175,8 @@ class SegPL:
                         probabilities = torch.nn.Softmax(dim=1)(logits_x_lb)
                     anti_pseudo_labels = (probabilities>p_cutoff).long().detach()
                     
-                    if anti_pseudo_labels.sum()>0:
-                        anti_unsup_loss = self.unsupervised_loss(logits_x_lb, anti_pseudo_labels)
-                    else:
-                        anti_unsup_loss = torch.zeros(1).cuda()
+                    anti_unsup_loss = self.unsupervised_loss(logits_x_lb, anti_pseudo_labels)
+
                         
                     if args.debiased:
                         total_loss = sup_loss + self.lambda_u * (unsup_loss - anti_unsup_loss)
@@ -215,10 +208,11 @@ class SegPL:
                 tb_dict['train/sup_loss'] = sup_loss.detach() 
                 tb_dict['train/unsup_loss'] = unsup_loss.detach() 
                 tb_dict['train/total_loss'] = total_loss.detach() 
-                tb_dict['train/anti_unsup_loss'] = anti_unsup_loss.detach() 
+                if args.debiased:
+                    tb_dict['train/anti_unsup_loss'] = anti_unsup_loss.detach() 
                 tb_dict['lr'] = self.optimizer.param_groups[0]['lr']
-                tb_dict['train/prefecth_time'] = start_batch.elapsed_time(end_batch)/1000.
-                tb_dict['train/run_time'] = start_run.elapsed_time(end_run)/1000.
+                #tb_dict['train/prefecth_time'] = start_batch.elapsed_time(end_batch)/1000.
+                #tb_dict['train/run_time'] = start_run.elapsed_time(end_run)/1000.
                 
                 
                 if self.it % self.num_eval_iter == 0:
@@ -248,7 +242,7 @@ class SegPL:
                     self.num_eval_iter = 1000
         
         eval_dict = self.evaluate(args=args)
-        eval_dict.update({'eval/best_dice': best_eval_dice, 'eval/best_it': best_it})
+        eval_dict.update({'eval/best_dice_loss': best_eval_dice, 'eval/best_it': best_it})
         return eval_dict
             
             
