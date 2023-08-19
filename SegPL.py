@@ -155,7 +155,7 @@ class SegPL:
                             logits_ema = self.eval_model(inputs)
                             logits_x_lb_ema = logits_ema[:num_lb]
                             logits_x_ulb_ema = logits_ema[num_lb:]
-                    del logits_ema
+                        del logits_ema
 
                     #Unsupervised losses
                     if args.mean_teacher:
