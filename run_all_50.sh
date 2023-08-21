@@ -1,10 +1,10 @@
 #Pretraining
-python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --num_labels 50 --ulb_loss_ratio 0.0 --num_iter 5000
-mv saved_models/CC_50_0.0_0 saved_models/CC_50_pretraining
-python3 test_script.py --load_path ./saved_models/CC_50_pretraining/
+#python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --num_labels 50 --ulb_loss_ratio 0.0 --num_iter 5000
+#mv saved_models/CC_50_0.0_0 saved_models/CC_50_pretraining
+#python3 test_script.py --load_path ./saved_models/CC_50_pretraining/
 #Finetuning completecase
-python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --num_labels 50 --finetune --load_path saved_models/CC_50_pretraining/model_best.pth --ulb_loss_ratio 0.0
-python3 test_script.py --load_path ./saved_models/CC_50_0.0_0/
+#python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --num_labels 50 --finetune --load_path saved_models/CC_50_pretraining/model_best.pth --ulb_loss_ratio 0.0
+#python3 test_script.py --load_path ./saved_models/CC_50_0.0_0/
 #SegPL
 python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 0 --num_labels 50 --finetune --load_path saved_models/CC_50_pretraining/model_best.pth --ulb_loss_ratio 0.1 --SegPL
 python3 test_script.py --load_path ./saved_models/FT_SegPL_50_0.1_0/
