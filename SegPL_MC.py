@@ -165,19 +165,6 @@ class SegPL_MC:
                         
                     #Unsupervised losses
                     ##Uncertainty quantification
-                    #mc_inputs = x_ulb.repeat(2, 1, 1, 1, 1)
-                    #stride = mc_inputs.shape[0] // 2
-                    #mc_predictions = torch.zeros([stride * self.T, args.num_classes, args.patch_d0, args.patch_d1, args.patch_d2]).cuda(args.gpu)
-                    #
-                    #for i in range(self.T//2):
-                    #    print(i)
-                    #    ema_inputs = mc_inputs + torch.clamp(torch.randn_like(mc_inputs) * 0.1, -0.2, 0.2)
-                    #    with torch.no_grad():
-                    #        mc_predictions[2 * stride * i:2 * stride * (i + 1)] = self.eval_model(ema_inputs).detach()
-                    #mc_predictions = F.softmax(mc_predictions, dim=1)
-                    #mc_predictions = mc_predictions.reshape(self.T, stride, args.num_classes, args.patch_d0, args.patch_d1, args.patch_d2)
-                    #mc_predictions = torch.mean(mc_predictions, dim=0)  
-                    #uncertainty = -1.0*torch.sum(mc_predictions*torch.log(mc_predictions + 1e-6), dim=1, keepdim=True) 
                     
                     for i in range(self.T):
                         ema_inputs = x_ulb + torch.clamp(torch.randn_like(x_ulb) * 0.1, -0.2, 0.2)
@@ -186,10 +173,8 @@ class SegPL_MC:
                             ema_mean_outputs += F.softmax(self.eval_model(ema_inputs).detach(), dim=1)
                             print(i,ema_mean_outputs.shape)
                     ema_mean_outputs = ema_mean_outputs/self.T
-                    print(i,ema_mean_outputs.shape)
 
                     uncertainty = -1.0*torch.sum(ema_mean_outputs*torch.log(ema_mean_outputs + 1e-6), dim=1, keepdim=True) 
-                    print(uncertainty.shape)
                     ## mask
                     mask_pl = (uncertainty<threshold).float()
                     
@@ -205,18 +190,18 @@ class SegPL_MC:
                     
                     #Debaised Unsupervised losses
                     ##Uncertainty quantification
-                    mc_inputs_lb = x_lb.repeat(2, 1, 1, 1, 1)
-                    stride = mc_inputs_lb.shape[0] // 2
-                    mc_predictions_lb = torch.zeros([stride * self.T, args.num_classes, args.patch_d0, args.patch_d1, args.patch_d2]).cuda(args.gpu)
                     
-                    for i in range(self.T//2):
-                        ema_inputs = mc_inputs_lb + torch.clamp(torch.randn_like(mc_inputs_lb) * 0.1, -0.2, 0.2)
+                    
+                    for i in range(self.T):
+                        ema_inputs_lb = x_ulb + torch.clamp(torch.randn_like(x_lb) * 0.1, -0.2, 0.2)
+                        ema_mean_outputs_lb = torch.zeros(ema_inputs.shape).cuda(args.gpu)
                         with torch.no_grad():
-                            mc_predictions_lb[2 * stride * i:2 * stride * (i + 1)] = self.eval_model(ema_inputs)
-                    mc_predictions_lb = F.softmax(mc_predictions_lb, dim=1)
-                    mc_predictions_lb = mc_predictions_lb.reshape(self.T, stride, args.num_classes, args.patch_d0, args.patch_d1, args.patch_d2)
-                    mc_predictions_lb = torch.mean(mc_predictions_lb, dim=0)  
-                    uncertainty_lb = -1.0*torch.sum(mc_predictions_lb*torch.log(mc_predictions_lb + 1e-6), dim=1, keepdim=True) 
+                            ema_mean_outputs_lb += F.softmax(self.eval_model(ema_inputs_lb).detach(), dim=1)
+                            print(i,ema_mean_outputs_lb.shape)
+                    ema_mean_outputs_lb = ema_mean_outputs_lb/self.T
+
+                    uncertainty_lb = -1.0*torch.sum(ema_mean_outputs_lb*torch.log(ema_mean_outputs_lb + 1e-6), dim=1, keepdim=True) 
+                
                     ## mask
                     mask_anti_pl = (uncertainty_lb<threshold).float()
                     
