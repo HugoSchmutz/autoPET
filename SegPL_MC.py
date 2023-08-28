@@ -171,7 +171,6 @@ class SegPL_MC:
                         ema_mean_outputs = torch.zeros(ema_inputs.shape).cuda(args.gpu)
                         with torch.no_grad():
                             ema_mean_outputs += F.softmax(self.eval_model(ema_inputs).detach(), dim=1)
-                            print(i,ema_mean_outputs.shape)
                     ema_mean_outputs = ema_mean_outputs/self.T
 
                     uncertainty = -1.0*torch.sum(ema_mean_outputs*torch.log(ema_mean_outputs + 1e-6), dim=1, keepdim=True) 
@@ -197,7 +196,6 @@ class SegPL_MC:
                         ema_mean_outputs_lb = torch.zeros(ema_inputs_lb.shape).cuda(args.gpu)
                         with torch.no_grad():
                             ema_mean_outputs_lb += F.softmax(self.eval_model(ema_inputs_lb).detach(), dim=1)
-                            print(i,ema_mean_outputs_lb.shape)
                     ema_mean_outputs_lb = ema_mean_outputs_lb/self.T
 
                     uncertainty_lb = -1.0*torch.sum(ema_mean_outputs_lb*torch.log(ema_mean_outputs_lb + 1e-6), dim=1, keepdim=True) 
