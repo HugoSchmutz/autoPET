@@ -234,7 +234,7 @@ class Get_Scalar:
     def __call__(self, iter):
         return self.value
 
-def net_builder(num_classes=2):
+def net_builder(num_classes=2, dropout = 0):
     unet = monai.networks.nets.UNet(
         spatial_dims=3,
         in_channels=2,
@@ -243,6 +243,7 @@ def net_builder(num_classes=2):
         strides=(2, 2, 2, 2),
         num_res_units=2,
         norm= monai.networks.layers.Norm.BATCH,
+        dropout = dropout,
     )
     return unet
 

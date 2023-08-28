@@ -11,7 +11,7 @@ from monai.inferers import sliding_window_inference
 import ramps
 
 class SegPL_MC:
-    def __init__(self, net_builder, num_classes, ema_m, p_cutoff, threshold, lambda_u,\
+    def __init__(self, net_builder, num_classes, ema_m, p_cutoff, threshold, lambda_u, dropout, \
                 it=0, num_eval_iter=1000, tb_log=None, logger=None):
         """
         class Fixmatch contains setter of data_loader, optimizer, and model update methods.
@@ -39,7 +39,7 @@ class SegPL_MC:
         # other configs are covered in main.py
         
         self.train_model = net_builder(num_classes=num_classes) 
-        self.eval_model = net_builder(num_classes=num_classes)
+        self.eval_model = net_builder(num_classes=num_classes, dropout = dropout)
         self.num_eval_iter = num_eval_iter
         self.p_fn = Get_Scalar(p_cutoff) #confidence cutoff function
         self.tau_fn = Get_Scalar(threshold) #confidence cutoff function
@@ -102,6 +102,7 @@ class SegPL_MC:
 
         #lb: labeled, ulb: unlabeled
         self.train_model.train()
+        self.eval_model.train()
         
         # for gpu profiling
         start_batch = torch.cuda.Event(enable_timing=True)
