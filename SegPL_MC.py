@@ -194,7 +194,7 @@ class SegPL_MC:
                     
                     for i in range(self.T):
                         ema_inputs_lb = x_lb + torch.clamp(torch.randn_like(x_lb) * 0.1, -0.2, 0.2)
-                        ema_mean_outputs_lb = torch.zeros(ema_inputs.shape).cuda(args.gpu)
+                        ema_mean_outputs_lb = torch.zeros(ema_inputs_lb.shape).cuda(args.gpu)
                         with torch.no_grad():
                             ema_mean_outputs_lb += F.softmax(self.eval_model(ema_inputs_lb).detach(), dim=1)
                             print(i,ema_mean_outputs_lb.shape)
