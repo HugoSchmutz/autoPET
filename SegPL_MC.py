@@ -170,6 +170,7 @@ class SegPL_MC:
                     mc_predictions = torch.zeros([stride * self.T, args.num_classes, args.patch_d0, args.patch_d1, args.patch_d2]).cuda(args.gpu)
                     
                     for i in range(self.T//2):
+                        print(i)
                         ema_inputs = mc_inputs + torch.clamp(torch.randn_like(mc_inputs) * 0.1, -0.2, 0.2)
                         with torch.no_grad():
                             mc_predictions[2 * stride * i:2 * stride * (i + 1)] = self.eval_model(ema_inputs)
