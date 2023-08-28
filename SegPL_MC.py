@@ -181,7 +181,7 @@ class SegPL_MC:
                     
                     for i in range(self.T):
                         ema_inputs = x_ulb + torch.clamp(torch.randn_like(x_ulb) * 0.1, -0.2, 0.2)
-                        ema_mean_outputs = torch.zeros(ema_inputs.shape)
+                        ema_mean_outputs = torch.zeros(ema_inputs.shape).cuda(args.gpu)
                         with torch.no_grad():
                             ema_mean_outputs += F.softmax(self.eval_model(ema_inputs).detach(), dim=1)
                             print(i,ema_mean_outputs.shape)
