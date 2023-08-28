@@ -180,12 +180,16 @@ class SegPL_MC:
                     #uncertainty = -1.0*torch.sum(mc_predictions*torch.log(mc_predictions + 1e-6), dim=1, keepdim=True) 
                     
                     for i in range(self.T):
-                        print(i)
                         ema_inputs = x_ulb + torch.clamp(torch.randn_like(x_ulb) * 0.1, -0.2, 0.2)
+                        ema_mean_outputs = torch.zeros(ema_inputs.shape)
                         with torch.no_grad():
-                            ema_mean_outputs = F.softmax(self.eval_model(ema_inputs).detach(), dim=1)
-                            print(ema_mean_outputs.shape)
-                    uncertainty = 0
+                            ema_mean_outputs += F.softmax(self.eval_model(ema_inputs).detach(), dim=1)
+                            print(i,ema_mean_outputs.shape)
+                    ema_mean_outputs = ema_mean_outputs/self.T
+                    print(i,ema_mean_outputs.shape)
+
+                    uncertainty = -1.0*torch.sum(ema_mean_outputs*torch.log(ema_mean_outputs + 1e-6), dim=1, keepdim=True) 
+                    print(uncertainty.shape)
                     ## mask
                     mask_pl = (uncertainty<threshold).float()
                     
