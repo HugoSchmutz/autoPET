@@ -52,6 +52,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
+    print(args.load_path)
     checkpoint_path = os.path.join(args.load_path, 'model_best.pth')
     checkpoint = torch.load(checkpoint_path)
     load_model = checkpoint['train_model'] if args.use_train_model else checkpoint['eval_model']
