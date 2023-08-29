@@ -161,7 +161,7 @@ class SegPL_MC:
                         
                     #Unsupervised losses
                     ##Uncertainty quantification
-                    ema_mean_outputs = torch.zeros(ema_inputs.shape).cuda(args.gpu)
+                    ema_mean_outputs = torch.zeros(x_ulb.shape).cuda(args.gpu)
                     for i in range(self.T):
                         ema_inputs = x_ulb + torch.clamp(torch.randn_like(x_ulb) * 0.1, -0.2, 0.2) 
                         with torch.no_grad():
@@ -185,7 +185,7 @@ class SegPL_MC:
                     #Debaised Unsupervised losses
                     ##Uncertainty quantification
                     
-                    ema_mean_outputs_lb = torch.zeros(ema_inputs_lb.shape).cuda(args.gpu)
+                    ema_mean_outputs_lb = torch.zeros(x_lb.shape).cuda(args.gpu)
                     for i in range(self.T):
                         ema_inputs_lb = x_lb + torch.clamp(torch.randn_like(x_lb) * 0.1, -0.2, 0.2)
                         with torch.no_grad():
