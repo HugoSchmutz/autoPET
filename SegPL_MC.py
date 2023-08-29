@@ -38,9 +38,10 @@ class SegPL_MC:
         # network is builded only by num_classes,
         # other configs are covered in main.py
         
-        self.train_model = net_builder(num_classes=num_classes) 
+        self.train_model = net_builder(num_classes=num_classes, dropout = dropout) 
         self.eval_model = net_builder(num_classes=num_classes, dropout = dropout)
         self.num_eval_iter = num_eval_iter
+        
         self.p_fn = Get_Scalar(p_cutoff) #confidence cutoff function
         self.tau_fn = Get_Scalar(threshold) #confidence cutoff function
         
@@ -100,9 +101,7 @@ class SegPL_MC:
         """
         ngpus_per_node = torch.cuda.device_count()
 
-        #lb: labeled, ulb: unlabeled
-        self.train_model.train()
-        self.eval_model.train()
+
         
         # for gpu profiling
         start_batch = torch.cuda.Event(enable_timing=True)
@@ -120,7 +119,12 @@ class SegPL_MC:
 
             for (batch, batch_u) in zip(self.loader_dict['train_lb'], self.loader_dict['train_ulb']):
                 
-                threshold = (0.75+0.25*ramps.sigmoid_rampup(self.it, args.num_train_iter))*np.log(2)
+                
+                
+                #lb: labeled, ulb: unlabeled
+                self.train_model.train()
+                self.eval_model.train()
+                
                 # prevent the training iterations exceed args.num_train_iter
                 if self.it > args.num_train_iter:
                     break
@@ -149,26 +153,17 @@ class SegPL_MC:
                     del logits
                     # hyper-params for update
                     p_cutoff = self.p_fn(self.it)
-                    threshold = self.tau_fn(self.it)
+                    threshold = (0.75+0.25*ramps.sigmoid_rampup(self.it, args.num_train_iter))*np.log(2)
                     
                     # Supervised loss
                     sup_loss = self.supervised_loss(logits_x_lb, y_lb)
 
-                    if args.mean_teacher:
-                        with torch.no_grad():
-
-                            noise = torch.clamp(torch.randn_like(inputs) * 0.1, -0.2, 0.2) #Add noise
-                            logits_ema = self.eval_model(inputs + noise)
-                            logits_x_lb_ema = logits_ema[:num_lb]
-                            logits_x_ulb_ema = logits_ema[num_lb:]
-                        del logits_ema
                         
                     #Unsupervised losses
                     ##Uncertainty quantification
-                    
+                    ema_mean_outputs = torch.zeros(ema_inputs.shape).cuda(args.gpu)
                     for i in range(self.T):
-                        ema_inputs = x_ulb + torch.clamp(torch.randn_like(x_ulb) * 0.1, -0.2, 0.2)
-                        ema_mean_outputs = torch.zeros(ema_inputs.shape).cuda(args.gpu)
+                        ema_inputs = x_ulb + torch.clamp(torch.randn_like(x_ulb) * 0.1, -0.2, 0.2) 
                         with torch.no_grad():
                             ema_mean_outputs += F.softmax(self.eval_model(ema_inputs).detach(), dim=1)
                     ema_mean_outputs = ema_mean_outputs/self.T
@@ -179,7 +174,7 @@ class SegPL_MC:
                     
                     ## Pseudo-labels
                     if args.mean_teacher:
-                        probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb_ema)
+                        probabilities = torch.nn.Softmax(dim=1)(ema_mean_outputs)
                     else:   
                         probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb)
                     pseudo_labels = (probabilities>p_cutoff).long().detach()                    
@@ -190,10 +185,9 @@ class SegPL_MC:
                     #Debaised Unsupervised losses
                     ##Uncertainty quantification
                     
-                    
+                    ema_mean_outputs_lb = torch.zeros(ema_inputs_lb.shape).cuda(args.gpu)
                     for i in range(self.T):
                         ema_inputs_lb = x_lb + torch.clamp(torch.randn_like(x_lb) * 0.1, -0.2, 0.2)
-                        ema_mean_outputs_lb = torch.zeros(ema_inputs_lb.shape).cuda(args.gpu)
                         with torch.no_grad():
                             ema_mean_outputs_lb += F.softmax(self.eval_model(ema_inputs_lb).detach(), dim=1)
                     ema_mean_outputs_lb = ema_mean_outputs_lb/self.T
@@ -206,7 +200,7 @@ class SegPL_MC:
                     ## Pseudo-labels
                     
                     if args.mean_teacher:
-                        probabilities = torch.nn.Softmax(dim=1)(logits_x_lb_ema)
+                        probabilities = torch.nn.Softmax(dim=1)(ema_mean_outputs_lb)
                     else:   
                         probabilities = torch.nn.Softmax(dim=1)(logits_x_lb)    
                     probabilities = torch.nn.Softmax(dim=1)(logits_x_lb)
@@ -300,7 +294,7 @@ class SegPL_MC:
         use_ema = hasattr(self, 'eval_model')
         
         eval_model = self.eval_model if use_ema else self.train_model
-        eval_model.eval()
+        eval_model.train()
         if eval_loader is None:
             eval_loader = self.loader_dict['eval']
         
@@ -310,8 +304,13 @@ class SegPL_MC:
 
         for batch in eval_loader:
             x, y = prepare_batch(batch, args.gpu)
-            logits = sliding_window_inference(x, roi_size, sw_batch_size, eval_model)
-            dice = self.dice_loss(logits, y).detach().cpu().item()
+            mean_logits = torch.zeros(x.shape).cuda(args.gpu)
+            for i in range(self.T):
+                with torch.no_grad():
+                    mean_logits += sliding_window_inference(x, roi_size, sw_batch_size, eval_model)
+            mean_logits = mean_logits/self.T
+            
+            dice = self.dice_loss(mean_logits, y).detach().cpu().item()
             total_dice.append(dice)        
         if not use_ema:
             eval_model.train()
