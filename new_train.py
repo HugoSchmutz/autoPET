@@ -209,6 +209,7 @@ def main_worker(gpu, ngpus_per_node, args):
         model = CompleteCase(_net_builder,
                         args.num_classes,
                         args.ema_m,
+                        args.dropout,
                         num_eval_iter=args.num_eval_iter,
                         tb_log=tb_log,
                         logger=logger)

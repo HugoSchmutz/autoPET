@@ -10,7 +10,7 @@ import numpy as np
 from monai.inferers import sliding_window_inference
 
 class CompleteCase:
-    def __init__(self, net_builder, num_classes, ema_m,\
+    def __init__(self, net_builder, num_classes, ema_m, dropout,\
                 it=0, num_eval_iter=1000, tb_log=None, logger=None):
         """
         class Fixmatch contains setter of data_loader, optimizer, and model update methods.
@@ -37,8 +37,8 @@ class CompleteCase:
         # network is builded only by num_classes,
         # other configs are covered in main.py
         
-        self.train_model = net_builder(num_classes=num_classes) 
-        self.eval_model = net_builder(num_classes=num_classes)
+        self.train_model = net_builder(num_classes=num_classes, dropout=dropout) 
+        self.eval_model = net_builder(num_classes=num_classes, dropout=dropout)
         self.num_eval_iter = num_eval_iter
 
         self.tb_log = tb_log

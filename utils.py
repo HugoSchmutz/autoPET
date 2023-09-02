@@ -27,7 +27,6 @@ CHANNELS_DIMENSION = 1
 SPATIAL_DIMENSIONS = 2, 3, 4    
 
 standard_transform = tio.Compose([
-        tio.ToCanonical(),
         tio.RescaleIntensity(include=['ct'], in_min_max = (-100, 250), out_min_max = (0,1)),
         tio.RescaleIntensity(include=['pet'], in_min_max = (0, 15), out_min_max = (0,1)),
         tio.OneHot(num_classes=2)])
