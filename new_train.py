@@ -59,19 +59,21 @@ def change_dist_url(args):
 
 
 def change_run_name(args):
-    name = f'_{args.num_labels}_{args.ulb_loss_ratio}_{args.seed}_{args.dropout}'
-    if args.SegPL:
-        name = 'SegPL' + name
-    elif args.SegPL_U:
-        name = 'SegPL_U' + name
+    name = f'_{args.num_labels}_{args.ulb_loss_ratio}_{args.seed}_{args.dropout}_{args.ulb_loss_fct}'
+    if args.SegPL_U:
+        name = 'softmax' + name
     elif args.MC_dropout:
-        name = 'SegPL_MC' + name
-    else:
-        name = 'CC' + name
+        name = 'UA' + name
+    
         
     
     if args.mean_teacher:
         name = 'MT_' + name
+    elif args.SegPL or args.SegPL_U or args.MC_dropout:
+        name = 'PL_' + name
+    else:
+        name = 'CC' + name
+
     if args.debiased:
         name = 'De' + name
     if args.finetune:
