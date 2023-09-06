@@ -59,7 +59,7 @@ def change_dist_url(args):
 
 
 def change_run_name(args):
-    name = f'_{args.num_labels}_{args.ulb_loss_ratio}_{args.seed}_{args.dropout}_{args.ulb_loss_fct}'
+    name = f'_{args.ulb_loss_fct}_{args.num_labels}_{args.ulb_loss_ratio}_{args.seed}_{args.dropout}'
     if args.SegPL_U:
         name = 'softmax' + name
     elif args.MC_dropout:

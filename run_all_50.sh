@@ -27,8 +27,8 @@
 #python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 0 --max_queue_length 300 --num_workers 4 --num_labels 50 --finetune --load_path saved_models/CC_50_pretraining/model_best.pth --ulb_loss_ratio 0.1 --SegPL_U --ulb_loss_fct maskedCE --mean_teacher
 #python3 test_script.py --load_path ./saved_models/FT_MT_SegPL_U_50_0.1_0/
 ##DeSegPL_U_MT
-python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 0 --max_queue_length 300 --num_workers 4 --num_labels 50 --finetune --load_path saved_models/CC_50_pretraining/model_best.pth --ulb_loss_ratio 0.1 --SegPL_U --ulb_loss_fct maskedCE --mean_teacher --debiased
-python3 test_script.py --load_path ./saved_models/FT_DeMT_SegPL_U_50_0.1_0/
+#python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 0 --max_queue_length 300 --num_workers 4 --num_labels 50 --finetune --load_path saved_models/CC_50_pretraining/model_best.pth --ulb_loss_ratio 0.1 --SegPL_U --ulb_loss_fct maskedCE --mean_teacher --debiased
+#python3 test_script.py --load_path ./saved_models/FT_DeMT_SegPL_U_50_0.1_0/
 
 
 
