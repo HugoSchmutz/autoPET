@@ -32,8 +32,8 @@
 #UA_MT
 #python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --finetune --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.1 --MC_dropout --ulb_loss_fct maskedCE --mean_teacher --dropout 0.2
 #python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --finetune --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.1 --MC_dropout --ulb_loss_fct maskedCE --mean_teacher --debiased --dropout 0.2
-python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --finetune --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.1 --MC_dropout --ulb_loss_fct maskedMSE --mean_teacher --dropout 0.2
-python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --finetune --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.1 --MC_dropout --ulb_loss_fct maskedMSE --mean_teacher --debiased --dropout 0.2
+python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --finetune --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.1 --MC_dropout --ulb_loss_fct maskedDiceCE --mean_teacher --dropout 0.2
+python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --finetune --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.1 --MC_dropout --ulb_loss_fct maskedDiceCE --mean_teacher --debiased --dropout 0.2
 
 #python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --finetune --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.0 --dropout 0.2
 #python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --finetune --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.0 --dropout 0.1
