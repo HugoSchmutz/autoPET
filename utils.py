@@ -158,9 +158,9 @@ def subjects_list(exams):
     subjects = []
     for path in exams:
         subject = tio.Subject(
-            ct=tio.ScalarImage(os.path.join(path, 'CTres.nii.gz') ),
-            pet=tio.ScalarImage(os.path.join(path, 'SUV.nii.gz') ),
-            segmentation=tio.LabelMap(os.path.join(path, 'SEG.nii.gz') ),
+            ct=tio.ScalarImage(os.path.join(path, 'CTres.nii') ),
+            pet=tio.ScalarImage(os.path.join(path, 'SUV.nii') ),
+            segmentation=tio.LabelMap(os.path.join(path, 'SEG.nii') ),
         )
         subjects.append(subject)
     return(subjects)
