@@ -156,7 +156,7 @@ class SegPL_MC:
                     threshold = (0.75+0.25*ramps.sigmoid_rampup(self.it, args.num_train_iter))*np.log(2)
                     
                     # Supervised loss
-                    sup_loss = self.supervised_loss(logits_x_lb, y_lb)
+                    sup_loss = (1/2) * self.supervised_loss(logits_x_lb, y_lb)
 
                         
                     #Unsupervised losses

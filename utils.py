@@ -1,25 +1,22 @@
 
 import torch
-import torchvision
 import torchio as tio
 import torch.nn.functional as F
 import enum
-import time
 import numpy as np
-from unet import UNet
 from tqdm.auto import tqdm
 import os
 from sklearn.model_selection import train_test_split
 import monai
 import logging
 import nibabel as nib
-import pathlib as plb
 import cc3d
-from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data.sampler import BatchSampler
-import torch.distributed as dist
 from typing import Any
-import pickle
+import warnings
+from monai.utils import LossReduction
+from monai.networks import one_hot
+from torch.nn.modules.loss import _Loss
+from utils_loss import MSELoss, MaskedCELoss, CELoss, MaskedMSELoss, MaskedDiceCELoss
 
 voxel_vol = 0.012441020965576172
 
@@ -57,48 +54,24 @@ def train_ssl(model, optimizer, loss_function, ulb_loss_function, eval_function,
             print(f'Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}')
 
 
-
-class MaskedDiceCELoss(monai.losses.DiceCELoss):
-    """
-    Add an additional `masking` process before `DiceLoss`, accept a binary mask ([0, 1]) indicating a region,
-    `input` and `target` will be masked by the region: region with mask `1` will keep the original value,
-    region with `0` mask will be converted to `0`. Then feed `input` and `target` to normal `DiceLoss` computation.
-    This has the effect of ensuring only the masked region contributes to the loss computation and
-    hence gradient calculation.
-
-    """
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """
-        Args follow :py:class:`monai.losses.DiceLoss`.
-        """
-        super().__init__(*args, **kwargs)
-        self.spatial_weighted = monai.losses.MaskedLoss(loss=super().forward)
-
-
-    def forward(self, input: torch.Tensor, target: torch.Tensor, mask: torch.Tensor ) -> torch.Tensor:
-        """
-        Args:
-            input: the shape should be BNH[WD].
-            target: the shape should be BNH[WD].
-            mask: the shape should B1H[WD] or 11H[WD].
-        """
-        return self.spatial_weighted(input=input, target=target, mask=mask)  # type: ignore[no-any-return]
-
-   
 def set_loss(loss_name, to_onehot_y, softmax, include_background, batch):
     if loss_name == 'Dice':
         loss = monai.losses.DiceLoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     elif loss_name == 'DiceCE':
         loss = monai.losses.DiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     elif loss_name == 'CE':
-        loss = monai.losses.DiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, lambda_dice=1.0)
+        loss = monai.losses.DiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, lambda_dice=0.0)
+    elif loss_name == 'MSE':
+        loss = MSELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     elif loss_name == 'maskedCE':
-        loss = MaskedDiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, lambda_dice=1.0)
+        loss = MaskedDiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, lambda_dice=0.0)
     elif loss_name == 'maskedDiceCE':
         loss = MaskedDiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     elif loss_name == 'maskedDice':
         loss = monai.losses.MaskedDiceLoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
+    elif loss_name == 'maskedMSE':
+        loss = MaskedMSELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
+        
     return(loss)   
               
 def validation(model, gpu, loss_function, loader):

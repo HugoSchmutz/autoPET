@@ -130,7 +130,7 @@ class CompleteCase:
                 with amp_cm():
                     logits = self.train_model(inputs)                
                     # Supervised loss
-                    total_loss = self.loss(logits, y)
+                    total_loss = (1/2) * self.loss(logits, y)
                     
                 # parameter updates
                 if args.amp:

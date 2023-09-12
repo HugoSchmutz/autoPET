@@ -165,7 +165,7 @@ class SegPL:
                         
                     pseudo_labels = (probabilities>p_cutoff).long().detach()
                     
-                    unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels)
+                    unsup_loss =(1/2) *  self.unsupervised_loss(logits_x_ulb, pseudo_labels)
 
                     
                     #Debaised Unsupervised losses
