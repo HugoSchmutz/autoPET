@@ -278,39 +278,31 @@ def main_worker(gpu, ngpus_per_node, args):
     print('Training labelled set:', len(lb_dset), 'subjects \t Training unlabelled set:', len(ulb_dset), 'subjects')
     print('Validation set:', len(eval_dset), 'subjects')
     
+    
+    from torch.utils.data import DataLoader
+    from torch.utils.data import IterDataPipe
+    from torch.utils.data.datapipes.iter import Shuffler, UnBatcher
+    from utils_data import PatchesSampler
+    
     loader_dict = {}
-    patches_dict = {}
+    datapipe_dict = {}
     dset_dict = {'train_lb': lb_dset, 'train_ulb': ulb_dset, 'eval': eval_dset}
     
-    patches_dict['train_lb'] = tio.Queue(
-        subjects_dataset=dset_dict['train_lb'],
-        max_length=args.max_queue_length,
-        samples_per_volume=args.samples_per_volume,
-        sampler=sampler,
-        num_workers=args.num_workers,
-        shuffle_subjects=True,
-        shuffle_patches=True,
-    )
+    datapipe_dict['train_lb'] = PatchesSampler(dset_dict['train_lb'], sampler, args.samples_per_volume)
+    datapipe_dict['train_lb'] = DataLoader(datapipe_dict['train_lb'], batch_size=None, num_workers=args.rgs.num_workers)
+    datapipe_dict['train_lb'] = UnBatcher(datapipe_dict['train_lb'])
+    datapipe_dict['train_lb'] = Shuffler(datapipe_dict['train_lb'], buffer_size=args.batch_size * args.samples_per_volume)
+    loader_dict['train_lb']  = DataLoader(datapipe_dict['train_lb'], batch_size=args.batch_size)
+        
+        
+    datapipe_dict['train_ulb'] = PatchesSampler(dset_dict['train_ulb'], sampler, args.samples_per_volume)
+    datapipe_dict['train_ulb'] = DataLoader(datapipe_dict['train_ulb'], batch_size=None, num_workers=args.rgs.num_workers)
+    datapipe_dict['train_ulb'] = UnBatcher(datapipe_dict['train_ulb'])
+    datapipe_dict['train_ulb'] = Shuffler(datapipe_dict['train_ulb'], buffer_size=args.batch_size * args.samples_per_volume)
+    loader_dict['train_ulb']  = DataLoader(datapipe_dict['train_ulb'], batch_size=args.batch_size)
+        
 
-    patches_dict['train_ulb'] = tio.Queue(
-        subjects_dataset=dset_dict['train_ulb'],
-        max_length=args.max_queue_length,
-        samples_per_volume=args.samples_per_volume,
-        sampler=sampler,
-        num_workers=args.num_workers,
-        shuffle_subjects=True,
-        shuffle_patches=True,
-    )
-
-
-
-    loader_dict['train_lb'] = torch.utils.data.DataLoader(
-        patches_dict['train_lb'], batch_size=args.batch_size)
-
-    loader_dict['train_ulb'] = torch.utils.data.DataLoader(
-        patches_dict['train_ulb'], batch_size=args.batch_size * args.uratio)
-
-    loader_dict['eval'] = torch.utils.data.DataLoader(eval_dset, batch_size=1, num_workers=0, collate_fn = list_data_collate)
+    loader_dict['eval'] = torch.utils.data.DataLoader(dset_dict['eval'], batch_size=1, num_workers=0, collate_fn = list_data_collate)
 
 
     ## set DataLoader on SegPL
