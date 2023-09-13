@@ -136,17 +136,17 @@ class MaskedMSELoss(_Loss):
         if mask.shape[1]==1:
             mask = mask[:,0]
         
-        
-        f = self.loss(input, target)[:,0]
+        f = self.loss(input, target)[:,1]
+        f = torch.sum(f*mask,  dim = (1,2,3))/torch.sum(mask, dim = (1,2,3))
 
         if self.reduction == LossReduction.MEAN.value:
-            f = torch.sum(f*mask)/torch.sum(mask)  # the batch and channel average
+            f = torch.mean(f)  # the batch and channel average
         elif self.reduction == LossReduction.SUM.value:
-            f = torch.sum(f*mask)  # sum over the batch and channel dims
+            f = torch.sum(f)  # sum over the batch and channel dims
         elif self.reduction == LossReduction.NONE.value:
             # If we are not computing voxelwise loss components at least
             # make sure a none reduction maintains a broadcastable shape
-            f=f*mask
+            f=f
         else:
             raise ValueError(f'Unsupported reduction: {self.reduction}, available options are ["mean", "sum", "none"].')
 
@@ -242,16 +242,17 @@ class MaskedCELoss(_Loss):
         
         
         f = self.loss(input, target)
-        
+        f = torch.sum(f*mask,  dim = (1,2,3))/torch.sum(mask, dim = (1,2,3))
+
         
         if self.reduction == LossReduction.MEAN.value:
-            f = torch.sum(f*mask)/torch.sum(mask)  # the batch and channel average
+            f = torch.mean(f)  # the batch and channel average
         elif self.reduction == LossReduction.SUM.value:
-            f = torch.sum(f*mask)  # sum over the batch and channel dims
+            f = torch.sum(f)  # sum over the batch and channel dims
         elif self.reduction == LossReduction.NONE.value:
             # If we are not computing voxelwise loss components at least
             # make sure a none reduction maintains a broadcastable shape
-            f=f*mask
+            f=f
         else:
             raise ValueError(f'Unsupported reduction: {self.reduction}, available options are ["mean", "sum", "none"].')
 
@@ -269,8 +270,9 @@ class MaskedDiceCELoss(_Loss):
         self.to_onehot_y = to_onehot_y
         self.batch = batch
         self.loss_ce = nn.CrossEntropyLoss(reduction='none')
-        self.loss_dice = monai.losses.MaskedDiceLoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
+        self.loss_dice = monai.losses.DiceLoss(to_onehot_y=False,softmax=True,include_background=False,batch=False, reduction='none')
         
+
         
         
         
@@ -291,23 +293,24 @@ class MaskedDiceCELoss(_Loss):
         if target.shape != input.shape:
             raise AssertionError(f"ground truth has different shape ({target.shape}) from input ({input.shape})")
         
-        f_dice = self.loss_dice(input, target, mask[:,:1])
-        
+        f_dice = self.loss_dice(input*mask, target*mask).flatten()
+
         if mask.shape[1]==1:
             mask = mask[:,0]
         
-        
         f_ce = self.loss_ce(input, target)
-        
+        f_ce = torch.sum(f_ce*mask,  dim = (1,2,3))/torch.sum(mask, dim = (1,2,3))
+
+        f = f_dice + f_ce
         
         if self.reduction == LossReduction.MEAN.value:
-            f = torch.sum(f_ce*mask)/torch.sum(mask) + torch.mean(f_dice)  # the batch and channel average
+            f = torch.mean(f)  # the batch and channel average
         elif self.reduction == LossReduction.SUM.value:
-            f = torch.sum(f_ce*mask) + torch.sum(f_dice)  # sum over the batch and channel dims
+            f = torch.sum(f) + torch.sum(f_dice)  # sum over the batch and channel dims
         elif self.reduction == LossReduction.NONE.value:
             # If we are not computing voxelwise loss components at least
             # make sure a none reduction maintains a broadcastable shape
-            f=f_ce*mask + f_dice
+            f=f
         else:
             raise ValueError(f'Unsupported reduction: {self.reduction}, available options are ["mean", "sum", "none"].')
 
