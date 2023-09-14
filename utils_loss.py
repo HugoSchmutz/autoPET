@@ -137,7 +137,6 @@ class MaskedMSELoss(_Loss):
             mask = mask[:,0]
         
         f = self.loss(input, target)
-        print(f.shape)
         f=f[:,0]
         f = torch.sum(f*mask,  dim = (1,2,3))/torch.sum(mask, dim = (1,2,3))
 
