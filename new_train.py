@@ -177,6 +177,7 @@ def main_worker(gpu, ngpus_per_node, args):
                         args.ema_m,
                         args.p_cutoff,
                         args.ulb_loss_ratio,
+                        args.dropout,
                         num_eval_iter=args.num_eval_iter,
                         tb_log=tb_log,
                         logger=logger)
@@ -190,6 +191,7 @@ def main_worker(gpu, ngpus_per_node, args):
                         args.p_cutoff,
                         args.threshold,
                         args.ulb_loss_ratio,
+                        args.dropout,
                         num_eval_iter=args.num_eval_iter,
                         tb_log=tb_log,
                         logger=logger)
