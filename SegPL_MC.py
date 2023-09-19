@@ -81,11 +81,11 @@ class SegPL_MC:
         self.loader_dict = loader_dict
         self.print_fn(f'[!] data loader keys: {self.loader_dict.keys()}')    
        
-    def set_supervised_loss(self, loss_name, to_onehot_y, softmax, include_background, batch):
-        self.supervised_loss = set_loss(loss_name, to_onehot_y, softmax, include_background, batch)
+    def set_supervised_loss(self, loss_name, to_onehot_y, softmax, include_background, batch, count_unselected_pixels):
+        self.supervised_loss = set_loss(loss_name, to_onehot_y, softmax, include_background, batch, count_unselected_pixels)
     
-    def set_unsupervised_loss(self, loss_name, to_onehot_y, softmax, include_background, batch):
-        self.unsupervised_loss = set_loss(loss_name, to_onehot_y, softmax, include_background, batch)
+    def set_unsupervised_loss(self, loss_name, to_onehot_y, softmax, include_background, batch, count_unselected_pixels):
+        self.unsupervised_loss = set_loss(loss_name, to_onehot_y, softmax, include_background, batch, count_unselected_pixels)
     
     
     def set_optimizer(self, optimizer, scheduler=None):

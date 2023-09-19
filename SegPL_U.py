@@ -12,7 +12,7 @@ from monai.inferers import sliding_window_inference
 
 
 class SegPL_U:
-    def __init__(self, net_builder, num_classes, ema_m, p_cutoff, threshold, lambda_u,\
+    def __init__(self, net_builder, num_classes, ema_m, p_cutoff, threshold, lambda_u, dropout,\
                 it=0, num_eval_iter=1000, tb_log=None, logger=None):
         """
         class Fixmatch contains setter of data_loader, optimizer, and model update methods.
@@ -39,8 +39,8 @@ class SegPL_U:
         # network is builded only by num_classes,
         # other configs are covered in main.py
         
-        self.train_model = net_builder(num_classes=num_classes) 
-        self.eval_model = net_builder(num_classes=num_classes)
+        self.train_model = net_builder(num_classes=num_classes, dropout = dropout) 
+        self.eval_model = net_builder(num_classes=num_classes, dropout = dropout)
         self.num_eval_iter = num_eval_iter
         self.p_fn = Get_Scalar(p_cutoff) #confidence cutoff function
         self.tau_fn = Get_Scalar(threshold) #confidence cutoff function
@@ -81,11 +81,11 @@ class SegPL_U:
         self.loader_dict = loader_dict
         self.print_fn(f'[!] data loader keys: {self.loader_dict.keys()}')    
        
-    def set_supervised_loss(self, loss_name, to_onehot_y, softmax, include_background, batch):
-        self.supervised_loss = set_loss(loss_name, to_onehot_y, softmax, include_background, batch)
+    def set_supervised_loss(self, loss_name, to_onehot_y, softmax, include_background, batch, count_unselected_pixels):
+        self.supervised_loss = set_loss(loss_name, to_onehot_y, softmax, include_background, batch, count_unselected_pixels)
     
-    def set_unsupervised_loss(self, loss_name, to_onehot_y, softmax, include_background, batch):
-        self.unsupervised_loss = set_loss(loss_name, to_onehot_y, softmax, include_background, batch)
+    def set_unsupervised_loss(self, loss_name, to_onehot_y, softmax, include_background, batch, count_unselected_pixels):
+        self.unsupervised_loss = set_loss(loss_name, to_onehot_y, softmax, include_background, batch, count_unselected_pixels)
     
     
     def set_optimizer(self, optimizer, scheduler=None):

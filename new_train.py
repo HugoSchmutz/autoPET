@@ -60,6 +60,10 @@ def change_dist_url(args):
 
 def change_run_name(args):
     name = f'_{args.ulb_loss_fct}_{args.num_labels}_{args.ulb_loss_ratio}_{args.seed}_{args.dropout}'
+    if args.count_unselected_pixels:
+        name = '_normal' + name
+    else:
+        name = '_masked' + name
     if args.SegPL_U:
         name = 'softmax' + name
     elif args.MC_dropout:
@@ -177,8 +181,8 @@ def main_worker(gpu, ngpus_per_node, args):
                         tb_log=tb_log,
                         logger=logger)
         #Set train losses
-        model.set_supervised_loss(args.lb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True)
-        model.set_unsupervised_loss(args.ulb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True)
+        model.set_supervised_loss(args.lb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True, count_unselected_pixels = False)
+        model.set_unsupervised_loss(args.ulb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True, count_unselected_pixels = False)
     elif args.SegPL_U:      
         model = SegPL_U(_net_builder,
                         args.num_classes,
@@ -190,10 +194,9 @@ def main_worker(gpu, ngpus_per_node, args):
                         tb_log=tb_log,
                         logger=logger)
         #Set train losses
-        model.set_supervised_loss(args.lb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True)
-        model.set_unsupervised_loss(args.ulb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True)
+        model.set_supervised_loss(args.lb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True, count_unselected_pixels = args.count_unselected_pixels)
+        model.set_unsupervised_loss(args.ulb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True, count_unselected_pixels = args.count_unselected_pixels)
     elif args.MC_dropout:
-        assert args.dropout > 0
         model = SegPL_MC(_net_builder,
                         args.num_classes,
                         args.ema_m,
@@ -205,8 +208,8 @@ def main_worker(gpu, ngpus_per_node, args):
                         tb_log=tb_log,
                         logger=logger)
         #Set train losses
-        model.set_supervised_loss(args.lb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True)
-        model.set_unsupervised_loss(args.ulb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True)
+        model.set_supervised_loss(args.lb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True, count_unselected_pixels = args.count_unselected_pixels)
+        model.set_unsupervised_loss(args.ulb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True, count_unselected_pixels = args.count_unselected_pixels)
     else:      
         model = CompleteCase(_net_builder,
                         args.num_classes,
@@ -216,7 +219,7 @@ def main_worker(gpu, ngpus_per_node, args):
                         tb_log=tb_log,
                         logger=logger)
         #Set train losses
-        model.set_loss(args.lb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True)
+        model.set_loss(args.lb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True, count_unselected_pixels=False)
 
     logger.info(f'Number of Trainable Params: {count_parameters(model.train_model)}')
     
@@ -396,6 +399,8 @@ if __name__ == "__main__":
     parser.add_argument('--amp', action='store_true', help='use mixed precision training or not')
     parser.add_argument('--lb_loss_fct', type=str, default='DiceCE', help = 'Choose between DiceCE, Dice, CE')
     parser.add_argument('--ulb_loss_fct', type=str, default='CE', help = 'Choose between DiceCE, Dice, CE, maskedDiceCE, maskedDice, maskedCE')
+    parser.add_argument('--count_unselected_pixels', type=bool, default=True, help = 'Do we count masked pixels in the mean of the loss?')
+    
     '''
     Backbone Net Configurations
     '''

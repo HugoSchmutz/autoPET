@@ -76,8 +76,8 @@ class CompleteCase:
         self.loader_dict = loader_dict
         self.print_fn(f'[!] data loader keys: {self.loader_dict.keys()}')    
        
-    def set_loss(self, loss_name, to_onehot_y, softmax, include_background, batch):
-        self.loss = set_loss(loss_name, to_onehot_y, softmax, include_background, batch)
+    def set_loss(self, loss_name, to_onehot_y, softmax, include_background, batch, count_unselected_pixels):
+        self.loss = set_loss(loss_name, to_onehot_y, softmax, include_background, batch, count_unselected_pixels)
     
     
     def set_optimizer(self, optimizer, scheduler=None):

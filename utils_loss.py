@@ -82,7 +82,7 @@ class MSELoss(_Loss):
     
     
 class MaskedMSELoss(_Loss):
-    def __init__(self, include_background: bool= True, to_onehot_y: bool = False, softmax: bool = True,
+    def __init__(self, include_background: bool= True, to_onehot_y: bool = False, softmax: bool = True, count_unselected_pixels: bool = True,
                  reduction = LossReduction.MEAN, sigmoid: bool = False, batch: bool = False,*args: Any, **kwargs: Any) -> None:
         """
         Args follow :py:class:`monai.losses.DiceLoss`.
@@ -95,6 +95,7 @@ class MaskedMSELoss(_Loss):
         self.softmax = softmax
         self.sigmoid = sigmoid
         self.batch = batch
+        self.count_unselected_pixels = count_unselected_pixels
         self.loss = nn.MSELoss(reduction='none')
         
         
@@ -138,7 +139,10 @@ class MaskedMSELoss(_Loss):
         
         f = self.loss(input, target)
         f=f[:,0]
-        f = torch.sum(f*mask,  dim = (1,2,3))/torch.sum(mask, dim = (1,2,3))
+        if self.count_unselected_pixels:
+            f = torch.mean(f*mask,  dim = (1,2,3))
+        else:
+            f = torch.sum(f*mask,  dim = (1,2,3))/torch.sum(mask, dim = (1,2,3))
 
         if self.reduction == LossReduction.MEAN.value:
             f = torch.mean(f)  # the batch and channel average
@@ -208,7 +212,7 @@ class CELoss(_Loss):
     
     
 class MaskedCELoss(_Loss):
-    def __init__(self, to_onehot_y: bool = False, reduction = LossReduction.MEAN, 
+    def __init__(self, to_onehot_y: bool = False, count_unselected_pixels: bool = True, reduction = LossReduction.MEAN, 
                  batch: bool = False,*args: Any, **kwargs: Any) -> None:
         """
         Args follow :py:class:`monai.losses.DiceLoss`.
@@ -217,6 +221,7 @@ class MaskedCELoss(_Loss):
         
         self.to_onehot_y = to_onehot_y
         self.batch = batch
+        self.count_unselected_pixels = count_unselected_pixels
         self.loss = nn.CrossEntropyLoss(reduction='none')
         
         
@@ -243,7 +248,10 @@ class MaskedCELoss(_Loss):
         
         
         f = self.loss(input, target)
-        f = torch.sum(f*mask,  dim = (1,2,3))/torch.sum(mask, dim = (1,2,3))
+        if self.count_unselected_pixels:
+            f = torch.mean(f*mask,  dim = (1,2,3))
+        else:
+            f = torch.sum(f*mask,  dim = (1,2,3))/torch.sum(mask, dim = (1,2,3))
 
         
         if self.reduction == LossReduction.MEAN.value:
@@ -261,7 +269,7 @@ class MaskedCELoss(_Loss):
 
 
 class MaskedDiceCELoss(_Loss):
-    def __init__(self, include_background: bool= True, to_onehot_y: bool = False, softmax: bool = True,
+    def __init__(self, include_background: bool= True, to_onehot_y: bool = False, softmax: bool = True, count_unselected_pixels: bool = True,
                  reduction = LossReduction.MEAN, sigmoid: bool = False, batch: bool = False,*args: Any, **kwargs: Any) -> None:
         """
         Args follow :py:class:`monai.losses.DiceLoss`.
@@ -270,6 +278,7 @@ class MaskedDiceCELoss(_Loss):
         
         self.to_onehot_y = to_onehot_y
         self.batch = batch
+        self.count_unselected_pixels = count_unselected_pixels
         self.loss_ce = nn.CrossEntropyLoss(reduction='none')
         self.loss_dice = monai.losses.DiceLoss(to_onehot_y=False,softmax=True,include_background=False,batch=False, reduction='none')
         
@@ -300,7 +309,10 @@ class MaskedDiceCELoss(_Loss):
             mask = mask[:,0]
         
         f_ce = self.loss_ce(input, target)
-        f_ce = torch.sum(f_ce*mask,  dim = (1,2,3))/torch.sum(mask, dim = (1,2,3))
+        if self.count_unselected_pixels:
+            f_ce = torch.mean(f_ce*mask,  dim = (1,2,3))
+        else:
+            f_ce = torch.sum(f_ce*mask,  dim = (1,2,3))/torch.sum(mask, dim = (1,2,3))
 
         f = f_dice + f_ce
         

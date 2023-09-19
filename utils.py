@@ -57,7 +57,7 @@ def train_ssl(model, optimizer, loss_function, ulb_loss_function, eval_function,
             print(f'Valid mean dice: {np.array(epoch_loss_val).mean():0.3f}')
 
 
-def set_loss(loss_name, to_onehot_y, softmax, include_background, batch):
+def set_loss(loss_name, to_onehot_y, softmax, include_background, batch, count_unselected_pixels):
     if loss_name == 'Dice':
         loss = monai.losses.DiceLoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     elif loss_name == 'DiceCE':
@@ -67,13 +67,13 @@ def set_loss(loss_name, to_onehot_y, softmax, include_background, batch):
     elif loss_name == 'MSE':
         loss = MSELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     elif loss_name == 'maskedCE':
-        loss = MaskedDiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, lambda_dice=0.0)
+        loss = MaskedDiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, count_unselected_pixels=count_unselected_pixels, lambda_dice=0.0)
     elif loss_name == 'maskedDiceCE':
-        loss = MaskedDiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
+        loss = MaskedDiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, count_unselected_pixels=count_unselected_pixels)
     elif loss_name == 'maskedDice':
         loss = monai.losses.MaskedDiceLoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     elif loss_name == 'maskedMSE':
-        loss = MaskedMSELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
+        loss = MaskedMSELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, count_unselected_pixels=count_unselected_pixels)
         
     return(loss)   
               
