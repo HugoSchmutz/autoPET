@@ -206,7 +206,7 @@ class CompleteCase:
 
         for batch in eval_loader:
             x, y = prepare_batch(batch, args.gpu)
-            logits = sliding_window_inference(x, roi_size, sw_batch_size, eval_model)
+            logits = sliding_window_inference(x, roi_size, sw_batch_size, eval_model, mode="gaussian", overlap=0.50)
             dice = self.dice_loss(logits, y).detach().cpu().item()
             total_dice.append(dice)        
         if not use_ema:

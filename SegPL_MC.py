@@ -307,7 +307,7 @@ class SegPL_MC:
             mean_logits = torch.zeros(x.shape).cuda(args.gpu)
             for i in range(self.T):
                 with torch.no_grad():
-                    mean_logits += sliding_window_inference(x, roi_size, sw_batch_size, eval_model)
+                    mean_logits += sliding_window_inference(x, roi_size, sw_batch_size, eval_model, mode="gaussian", overlap=0.50)
             mean_logits = mean_logits/self.T
             
             dice = self.dice_loss(mean_logits, y).detach().cpu().item()
