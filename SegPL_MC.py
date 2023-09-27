@@ -53,6 +53,8 @@ class SegPL_MC:
         
         self.it = it
         self.T = 8
+        self.T_eval = 100
+
         self.logger = logger
         self.print_fn = print if logger is None else logger.info
         
@@ -305,10 +307,10 @@ class SegPL_MC:
         for batch in eval_loader:
             x, y = prepare_batch(batch, args.gpu)
             mean_logits = torch.zeros(x.shape).cuda(args.gpu)
-            for i in range(self.T):
+            for i in range(self.T_eval):
                 with torch.no_grad():
                     mean_logits += sliding_window_inference(x, roi_size, sw_batch_size, eval_model, mode="gaussian", overlap=0.50)
-            mean_logits = mean_logits/self.T
+            mean_logits = mean_logits/self.T_eval
             
             dice = self.dice_loss(mean_logits, y).detach().cpu().item()
             total_dice.append(dice)        

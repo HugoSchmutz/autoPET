@@ -34,6 +34,7 @@ class SegPL:
         self.num_classes = num_classes
         self.ema_m = ema_m
 
+        self.T_eval = 100
         # create the encoders
         # network is builded only by num_classes,
         # other configs are covered in main.py
@@ -165,7 +166,7 @@ class SegPL:
                         
                     pseudo_labels = (probabilities>p_cutoff).float().detach()
                     
-                    unsup_loss =(1/2) *  self.unsupervised_loss(logits_x_ulb, pseudo_labels)
+                    unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels)
 
                     
                     #Debaised Unsupervised losses
@@ -217,7 +218,7 @@ class SegPL:
                 
                 if self.it % self.num_eval_iter == 0:
 
-                    eval_dict = self.evaluate(args=args)
+                    eval_dict = self.evaluate_MC(args=args)
                     tb_dict.update(eval_dict)
                     
                     save_path = os.path.join(args.save_dir, args.save_name)
@@ -241,7 +242,7 @@ class SegPL:
                 if self.it > 2**19:
                     self.num_eval_iter = 1000
         
-        eval_dict = self.evaluate(args=args)
+        eval_dict = self.evaluate_MC(args=args)
         eval_dict.update({'eval/best_dice_loss': best_eval_dice, 'eval/best_it': best_it})
         return eval_dict
             
@@ -269,7 +270,33 @@ class SegPL:
             
         return {'eval/dice': np.mean(total_dice)}
 
-    
+    @torch.no_grad()
+    def evaluate_MC(self, eval_loader=None, args=None):
+        use_ema = hasattr(self, 'eval_model')
+        
+        eval_model = self.eval_model if use_ema else self.train_model
+        eval_model.train()
+        if eval_loader is None:
+            eval_loader = self.loader_dict['eval']
+        
+        total_dice = []
+        roi_size = (128, 128, 32)
+        sw_batch_size = 40
+
+        for batch in eval_loader:
+            x, y = prepare_batch(batch, args.gpu)
+            mean_logits = torch.zeros(x.shape).cuda(args.gpu)
+            for i in range(self.T_eval):
+                with torch.no_grad():
+                    mean_logits += sliding_window_inference(x, roi_size, sw_batch_size, eval_model, mode="gaussian", overlap=0.50)
+            mean_logits = mean_logits/self.T_eval
+            
+            dice = self.dice_loss(mean_logits, y).detach().cpu().item()
+            total_dice.append(dice)        
+        if not use_ema:
+            eval_model.train()
+            
+        return {'eval/dice': np.mean(total_dice)}
     def save_model(self, save_name, save_path):
         save_filename = os.path.join(save_path, save_name)
         train_model = self.train_model.module if hasattr(self.train_model, 'module') else self.train_model

@@ -379,7 +379,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--T', type=float, default=0.5)
     parser.add_argument('--p_cutoff', type=float, default=0.5)
-    parser.add_argument('--threshold', type=float, default=0.80)
+    parser.add_argument('--threshold', type=float, default=0.95)
     parser.add_argument('--ema_m', type=float, default=0.99, help='ema momentum for eval_model')
     parser.add_argument('--hard_label', type=bool, default=True)
 
