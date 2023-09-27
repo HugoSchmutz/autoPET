@@ -65,16 +65,16 @@ def change_run_name(args):
     else:
         name = '_masked' + name
     if args.SegPL_U:
-        name = 'softmax' + name
+        name = '_softmax' + name
     elif args.MC_dropout:
-        name = 'UA' + name
+        name = '_UA' + name
     
         
     
     if args.mean_teacher:
-        name = 'MT_' + name
+        name = 'MT' + name
     elif args.SegPL or args.SegPL_U or args.MC_dropout:
-        name = 'PL_' + name
+        name = 'PL' + name
     else:
         name = 'CC' + name
 
