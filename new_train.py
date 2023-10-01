@@ -20,6 +20,7 @@ from utils import net_builder, get_logger, count_parameters, get_ssl_dataset, st
 from SegPL import SegPL
 from CompleteCase import CompleteCase
 from SegPL_U import SegPL_U
+from SegPL_UA import SegPL_UA
 from SegPL_MC import SegPL_MC
 from train_utils import TBLog
 
@@ -66,8 +67,10 @@ def change_run_name(args):
         name = '_masked' + name
     if args.SegPL_U:
         name = '_softmax' + name
-    elif args.MC_dropout:
+    elif args.UA:
         name = '_UA' + name
+    elif args.MC_dropout:
+        name = '_MC' + name
     
         
     
@@ -200,6 +203,20 @@ def main_worker(gpu, ngpus_per_node, args):
         model.set_unsupervised_loss(args.ulb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True, count_unselected_pixels = args.count_unselected_pixels)
     elif args.MC_dropout:
         model = SegPL_MC(_net_builder,
+                        args.num_classes,
+                        args.ema_m,
+                        args.p_cutoff,
+                        args.threshold,
+                        args.ulb_loss_ratio,
+                        args.dropout,
+                        num_eval_iter=args.num_eval_iter,
+                        tb_log=tb_log,
+                        logger=logger)
+        #Set train losses
+        model.set_supervised_loss(args.lb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True, count_unselected_pixels = args.count_unselected_pixels)
+        model.set_unsupervised_loss(args.ulb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=True, count_unselected_pixels = args.count_unselected_pixels)
+    elif args.UA:
+        model = SegPL_UA(_net_builder,
                         args.num_classes,
                         args.ema_m,
                         args.p_cutoff,
@@ -389,6 +406,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--debiased', action='store_true')
     parser.add_argument('--MC_dropout', action='store_true')
+    parser.add_argument('--UA', action='store_true')
     parser.add_argument('--mean_teacher', action='store_true', help='generation of pseudo-labels with mean teacher')
     parser.add_argument('--SegPL', action='store_true', help='Segmentation Pseudo Label')
     parser.add_argument('--SegPL_U', action='store_true', help='Segmentation Pseudo Label masked by uncertainty')

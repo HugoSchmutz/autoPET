@@ -10,7 +10,7 @@ import numpy as np
 from monai.inferers import sliding_window_inference
 import ramps
 
-class SegPL_MC:
+class SegPL_UA:
     def __init__(self, net_builder, num_classes, ema_m, p_cutoff, threshold, lambda_u, dropout, \
                 it=0, num_eval_iter=1000, tb_log=None, logger=None):
         """
@@ -27,7 +27,7 @@ class SegPL_MC:
             logger: logger (see utils.py)
         """
         
-        super(SegPL_MC, self).__init__()
+        super(SegPL_UA, self).__init__()
 
         # momentum update param
         self.loader = {}
@@ -121,8 +121,7 @@ class SegPL_MC:
 
             for (batch, batch_u) in zip(self.loader_dict['train_lb'], self.loader_dict['train_ulb']):
                 
-                threshold = self.tau_fn(self.it)
-
+                
                 
                 #lb: labeled, ulb: unlabeled
                 self.train_model.train()
@@ -156,6 +155,7 @@ class SegPL_MC:
                     del logits
                     # hyper-params for update
                     p_cutoff = self.p_fn(self.it)
+                    threshold = (0.75+0.25*ramps.sigmoid_rampup(self.it, args.num_train_iter))*np.log(2)
                     
                     # Supervised loss
                     sup_loss = (1/2) * self.supervised_loss(logits_x_lb, y_lb)
@@ -170,9 +170,10 @@ class SegPL_MC:
                             ema_mean_outputs += F.softmax(self.eval_model(ema_inputs).detach(), dim=1)
                     ema_mean_outputs = ema_mean_outputs/self.T
 
+                    uncertainty = -1.0*torch.sum(ema_mean_outputs*torch.log(ema_mean_outputs + 1e-6), dim=1, keepdim=True) 
                     ## mask
-                    mask_pl = (ema_mean_outputs>threshold).long() + (ema_mean_outputs<1 - threshold).long()
-
+                    mask_pl = (uncertainty<threshold).float()
+                    
                     ## Pseudo-labels
                     if args.mean_teacher:
                         probabilities = torch.nn.Softmax(dim=1)(ema_mean_outputs)
@@ -193,9 +194,10 @@ class SegPL_MC:
                             ema_mean_outputs_lb += F.softmax(self.eval_model(ema_inputs_lb).detach(), dim=1)
                     ema_mean_outputs_lb = ema_mean_outputs_lb/self.T
 
+                    uncertainty_lb = -1.0*torch.sum(ema_mean_outputs_lb*torch.log(ema_mean_outputs_lb + 1e-6), dim=1, keepdim=True) 
                 
                     ## mask
-                    mask_anti_pl = (ema_mean_outputs_lb>threshold).long() + (ema_mean_outputs_lb<1 - threshold).long()
+                    mask_anti_pl = (uncertainty_lb<threshold).float()
                     
                     ## Pseudo-labels
                     
@@ -236,6 +238,9 @@ class SegPL_MC:
                 
                 #tensorboard_dict update
                 tb_dict = {}
+                tb_dict['uncertainty/mean']=  uncertainty[0,0].mean()
+                tb_dict['uncertainty/max']=  uncertainty[0,0].max()
+                tb_dict['uncertainty/min']=  uncertainty[0,0].min()
                 tb_dict['uncertainty/mask_per']=  torch.sum(mask_pl)/mask_pl.numel()
                 
                 
@@ -245,7 +250,10 @@ class SegPL_MC:
                 tb_dict['train/total_loss'] = total_loss.detach() 
                 tb_dict['lr'] = self.optimizer.param_groups[0]['lr']
                 if args.debiased:
-                    tb_dict['train/anti_unsup_loss'] = anti_unsup_loss.detach()
+                    tb_dict['train/anti_unsup_loss'] = anti_unsup_loss.detach() 
+                    tb_dict['anti_uncertainty/mean']=  uncertainty_lb[0,0].mean()
+                    tb_dict['anti_uncertainty/max']=  uncertainty_lb[0,0].max()
+                    tb_dict['anti_uncertainty/min']=  uncertainty_lb[0,0].min()
                     tb_dict['anti_uncertainty/mask_per']=  torch.sum(mask_anti_pl)/mask_anti_pl.numel()
                 
                 #tb_dict['train/prefecth_time'] = start_batch.elapsed_time(end_batch)/1000.
