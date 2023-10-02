@@ -172,7 +172,7 @@ class SegPL_MC:
 
                     ## mask
                     mask_pl = (ema_mean_outputs>threshold).long() + (ema_mean_outputs<1 - threshold).long()
-                    print(mask_pl.shape)
+
                     ## Pseudo-labels
                     if args.mean_teacher:
                         probabilities = torch.nn.Softmax(dim=1)(ema_mean_outputs)
