@@ -181,7 +181,7 @@ class SegPL_MC:
                     pseudo_labels = (probabilities>p_cutoff).float().detach()                    
                     
                     ##Loss computation
-                    unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels, mask=mask_pl)
+                    unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels, mask=mask_pl[:,:1])
                     
                     #Debaised Unsupervised losses
                     ##Uncertainty quantification
@@ -207,7 +207,7 @@ class SegPL_MC:
                     anti_pseudo_labels = (probabilities>p_cutoff).float().detach()
                     
                     ##Loss computation
-                    anti_unsup_loss = self.unsupervised_loss(logits_x_lb, anti_pseudo_labels, mask=mask_anti_pl)
+                    anti_unsup_loss = self.unsupervised_loss(logits_x_lb, anti_pseudo_labels, mask=mask_anti_pl[:,:1])
                     
                     if args.debiased:
                         total_loss = sup_loss + self.lambda_u * (unsup_loss - anti_unsup_loss)
