@@ -53,7 +53,7 @@ class SegPL_UA:
         
         self.it = it
         self.T = 8
-        self.T_eval = 100
+        self.T_eval = 1
 
         self.logger = logger
         self.print_fn = print if logger is None else logger.info

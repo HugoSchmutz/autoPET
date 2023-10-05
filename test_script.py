@@ -65,7 +65,7 @@ if __name__ == "__main__":
         net.cuda()
     net.train()
     
-    T_eval = 10
+    T_eval = 1
     test_set = get_test_dataset(args.data_dir, args.patients_list_dir, standard_transform)
     
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=1, num_workers=0, collate_fn = list_data_collate)
@@ -84,7 +84,7 @@ if __name__ == "__main__":
             for i in range(T_eval):
                 mean_logits = +sliding_window_inference(X, roi_size, sw_batch_size, net, mode="gaussian", overlap=0.50)
             mean_logits = mean_logits/T_eval
-            print(mean_logits.shape)
+
             mask_out = torch.argmax(mean_logits, dim=1).detach().cpu().numpy().squeeze()
             mask_out = mask_out.astype(np.uint8)               
             

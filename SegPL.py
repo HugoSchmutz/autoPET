@@ -34,7 +34,7 @@ class SegPL:
         self.num_classes = num_classes
         self.ema_m = ema_m
 
-        self.T_eval = 100
+        self.T_eval = 1
         # create the encoders
         # network is builded only by num_classes,
         # other configs are covered in main.py
