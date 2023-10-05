@@ -77,7 +77,7 @@ if __name__ == "__main__":
     with torch.no_grad():
         for i, data in enumerate(tqdm(test_loader)):
             roi_size = (128, 128, 32)
-            sw_batch_size = 40
+            sw_batch_size = 20
             X, y = prepare_batch(data, args.gpu)
 
             mean_logits = torch.zeros(X.shape).cuda(args.gpu)
