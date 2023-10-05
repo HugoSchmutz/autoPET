@@ -65,7 +65,7 @@ if __name__ == "__main__":
         net.cuda()
     net.train()
     
-    T_eval = 100
+    T_eval = 10
     test_set = get_test_dataset(args.data_dir, args.patients_list_dir, standard_transform)
     
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=1, num_workers=0, collate_fn = list_data_collate)
