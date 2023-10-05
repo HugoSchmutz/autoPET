@@ -84,7 +84,7 @@ if __name__ == "__main__":
             for i in range(T_eval):
                 mean_logits = +sliding_window_inference(X, roi_size, sw_batch_size, net, mode="gaussian", overlap=0.50)
             mean_logits = mean_logits/T_eval
-            
+            print(mean_logits.shape)
             mask_out = torch.argmax(mean_logits, dim=1).detach().cpu().numpy().squeeze()
             mask_out = mask_out.astype(np.uint8)               
             
