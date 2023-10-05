@@ -89,7 +89,7 @@ if __name__ == "__main__":
             mask_out = mask_out.astype(np.uint8)               
             
             
-            dice_loss_fct = dice_loss(mean_logits, y).detach().cpu().item()
+            dice_loss = dice_loss_fct(mean_logits, y).detach().cpu().item()
             
             
             predicted_tumour_volume = mask_out.sum() * voxel_vol
