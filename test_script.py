@@ -17,7 +17,7 @@ import sys
 import matplotlib.pyplot as plt
 import seaborn as sns
 from tqdm import tqdm
-
+import monai
 
 if __name__ == "__main__":
     import argparse
@@ -63,32 +63,41 @@ if __name__ == "__main__":
     
     if torch.cuda.is_available():
         net.cuda()
-    net.eval()
+    net.train()
     
-    
+    T_eval = 100
     test_set = get_test_dataset(args.data_dir, args.patients_list_dir, standard_transform)
     
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=1, num_workers=0, collate_fn = list_data_collate)
  
+    dice_loss = monai.losses.DiceLoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
 
     metrics = []    
     with torch.no_grad():
         for i, data in enumerate(tqdm(test_loader)):
             roi_size = (128, 128, 32)
-            sw_batch_size = 20
+            sw_batch_size = 40
             
-            X, _ = prepare_batch(data, args.gpu)
+            X, y = prepare_batch(data, args.gpu)
             
-            mask_out = sliding_window_inference(X, roi_size, sw_batch_size, net, mode="gaussian", overlap=0.50)
-            mask_out = torch.argmax(mask_out, dim=1).detach().cpu().numpy().squeeze()
+            mean_logits = torch.zeros(X.shape).cuda(args.gpu)
+            for i in range(T_eval):
+                mean_logits = +sliding_window_inference(X, roi_size, sw_batch_size, net, mode="gaussian", overlap=0.50)
+            mean_logits = mean_logits/T_eval
+            
+            mask_out = torch.argmax(mean_logits, dim=1).detach().cpu().numpy().squeeze()
             mask_out = mask_out.astype(np.uint8)               
+            
+            
+            dice_loss = dice_loss(mean_logits, y).detach().cpu().item()
+            
             
             predicted_tumour_volume = mask_out.sum() * voxel_vol
             true_volume = data['segmentation'][tio.DATA][0,1].sum() * voxel_vol
             mse_volume = (predicted_tumour_volume - true_volume)**2
             
             dice_sc, false_pos_vol, false_neg_vol, true_nb_lesions, pred_nb_lesions = compute_metrics(mask_out, data['segmentation'][tio.DATA][0,1])
-            metrics.append([dice_sc, false_pos_vol, false_neg_vol, predicted_tumour_volume, true_volume, mse_volume, true_nb_lesions, pred_nb_lesions])
+            metrics.append([dice_sc, false_pos_vol, false_neg_vol, predicted_tumour_volume, true_volume, mse_volume, true_nb_lesions, pred_nb_lesions, dice_loss])
             
             #csv_rows = [[dice_sc, false_pos_vol, false_neg_vol]]
             #print(csv_rows)
@@ -101,8 +110,9 @@ if __name__ == "__main__":
     total_false_pos_vol = np.sum(metrics, axis=0)[1]
     total_false_negvol = np.mean(metrics, axis=0)[2]
     mean_mse_volume = np.mean(metrics, axis=0)[5]
+    mean_dice_loss = np.mean(metrics, axis=0)[8]
     
-    print(f'Mean Dice: {mean_dice_sc:0.3f}, False positive: {total_false_pos_vol:0.3f}, False negative: {total_false_negvol:0.3f}, Mean MSE volume: {mean_mse_volume:0.3f}')
+    print(f'Mean Dice: {mean_dice_sc:0.3f}, Mean Dice Loss: {dice_loss:0.3f}, False positive: {total_false_pos_vol:0.3f}, False negative: {total_false_negvol:0.3f}, Mean MSE volume: {mean_mse_volume:0.3f}')
     
     metrics = np.array(metrics)
     res= pd.DataFrame({'dice_sc':metrics[:,0],
