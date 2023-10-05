@@ -157,8 +157,6 @@ def get_exams_train(data_path, patients_list_dir, num_eval):
 def subjects_list(exams):
     subjects = []
     for path in exams:
-        print(tio.ScalarImage(os.path.join(path, 'CTres.nii')).shape)
-        print(tio.ScalarImage(os.path.join(path, 'SUV.nii')).shape)
         subject = tio.Subject(
             ct=tio.ScalarImage(os.path.join(path, 'CTres.nii') ),
             pet=tio.ScalarImage(os.path.join(path, 'SUV.nii') ),
