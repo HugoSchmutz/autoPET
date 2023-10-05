@@ -179,8 +179,11 @@ class Action(enum.Enum):
 
 def prepare_batch(batch, gpu):
     pet = batch['pet'][tio.DATA].cuda(gpu)
+    print(pet.shape)
     ct = batch['ct'][tio.DATA].cuda(gpu)
+    print(ct.shape)
     inputs = torch.cat([pet,ct], axis=CHANNELS_DIMENSION)
+    print(inputs.shape)
     targets = batch['segmentation'][tio.DATA].cuda(gpu)
     return inputs, targets
 
