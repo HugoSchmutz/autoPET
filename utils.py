@@ -157,6 +157,8 @@ def get_exams_train(data_path, patients_list_dir, num_eval):
 def subjects_list(exams):
     subjects = []
     for path in exams:
+        print(tio.ScalarImage(os.path.join(path, 'CTres.nii')).shape)
+        print(tio.ScalarImage(os.path.join(path, 'SUV.nii')).shape)
         subject = tio.Subject(
             ct=tio.ScalarImage(os.path.join(path, 'CTres.nii') ),
             pet=tio.ScalarImage(os.path.join(path, 'SUV.nii') ),
@@ -179,11 +181,11 @@ class Action(enum.Enum):
 
 def prepare_batch(batch, gpu):
     pet = batch['pet'][tio.DATA].cuda(gpu)
-    print(pet.shape)
+    #print(pet.shape)
     ct = batch['ct'][tio.DATA].cuda(gpu)
-    print(ct.shape)
+    #print(ct.shape)
     inputs = torch.cat([pet,ct], axis=CHANNELS_DIMENSION)
-    print(inputs.shape)
+    #print(inputs.shape)
     targets = batch['segmentation'][tio.DATA].cuda(gpu)
     return inputs, targets
 
