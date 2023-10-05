@@ -70,7 +70,7 @@ if __name__ == "__main__":
     
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=1, num_workers=0, collate_fn = list_data_collate)
  
-    dice_loss = monai.losses.DiceLoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
+    dice_loss_fct = monai.losses.DiceLoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
 
     metrics = []    
     with torch.no_grad():
@@ -89,7 +89,7 @@ if __name__ == "__main__":
             mask_out = mask_out.astype(np.uint8)               
             
             
-            dice_loss = dice_loss(mean_logits, y).detach().cpu().item()
+            dice_loss_fct = dice_loss(mean_logits, y).detach().cpu().item()
             
             
             predicted_tumour_volume = mask_out.sum() * voxel_vol
