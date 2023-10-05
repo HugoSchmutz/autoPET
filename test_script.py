@@ -79,7 +79,7 @@ if __name__ == "__main__":
             sw_batch_size = 40
             
             X, y = prepare_batch(data, args.gpu)
-            
+            print(X.shape)
             mean_logits = torch.zeros(X.shape).cuda(args.gpu)
             for i in range(T_eval):
                 mean_logits = +sliding_window_inference(X, roi_size, sw_batch_size, net, mode="gaussian", overlap=0.50)
