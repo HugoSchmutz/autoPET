@@ -78,10 +78,10 @@ if __name__ == "__main__":
         for i, data in enumerate(tqdm(test_loader)):
             roi_size = (128, 128, 32)
             sw_batch_size = 40
-            print(data['pet'][tio.DATA])
-            print(data['ct'][tio.DATA])
+            print('pet', data['pet'][tio.DATA].shape)
+            print('ct', data['ct'][tio.DATA].shape)
             X, y = prepare_batch(data, args.gpu)
-            print(X.shape)
+            print('x', X.shape)
 
             mean_logits = torch.zeros(X.shape).cuda(args.gpu)
             for i in range(T_eval):
