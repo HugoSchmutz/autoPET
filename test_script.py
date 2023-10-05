@@ -63,7 +63,7 @@ if __name__ == "__main__":
     
     if torch.cuda.is_available():
         net.cuda()
-    net.train()
+    net.eval()
     
     T_eval = 1
     test_set = get_test_dataset(args.data_dir, args.patients_list_dir, standard_transform)
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     with torch.no_grad():
         for i, data in enumerate(tqdm(test_loader)):
             roi_size = (128, 128, 32)
-            sw_batch_size = 20
+            sw_batch_size = 40
             X, y = prepare_batch(data, args.gpu)
 
             mean_logits = torch.zeros(X.shape).cuda(args.gpu)
