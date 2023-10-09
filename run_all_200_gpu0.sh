@@ -54,8 +54,8 @@
 #python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 0 --max_queue_length 600 --num_workers 5 --num_labels 200 --finetune --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.1 --ulb_loss_fct maskedCE --dropout 0.2 --MC_dropout
 #python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 0 --max_queue_length 600 --num_workers 5 --num_labels 50 --finetune --load_path saved_models/CC_50_pretraining/model_best.pth --ulb_loss_ratio 0.1 --ulb_loss_fct maskedCE --dropout 0.2 --MC_dropout
 
-python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 0 --num_labels 200 --finetune --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.1 --SegPL --ulb_loss_fct Dice --dropout 0.2
-python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 0 --num_labels 50 --finetune --load_path saved_models/CC_50_pretraining/model_best.pth --ulb_loss_ratio 0.1 --SegPL --ulb_loss_fct Dice --dropout 0.2
+python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 0 --num_labels 200 --finetune --max_queue_length 600 --num_workers 5 --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.1 --SegPL --ulb_loss_fct Dice --dropout 0.2
+python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 0 --num_labels 50 --finetune --max_queue_length 600 --num_workers 5 --load_path saved_models/CC_50_pretraining/model_best.pth --ulb_loss_ratio 0.1 --SegPL --ulb_loss_fct Dice --dropout 0.2
 
 
 #python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 0 --max_queue_length 600 --num_workers 5 --num_labels 200 --finetune --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.1 --ulb_loss_fct maskedCE --dropout 0.2 --MC_dropout
