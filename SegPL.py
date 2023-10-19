@@ -243,7 +243,7 @@ class SegPL:
                 if self.it > 2**19:
                     self.num_eval_iter = 1000
         
-        eval_dict = self.evaluate_MC(args=args)
+        eval_dict = self.evaluate(args=args)
         eval_dict.update({'eval/best_dice_loss': best_eval_dice, 'eval/best_it': best_it})
         return eval_dict
             
@@ -298,6 +298,7 @@ class SegPL:
             eval_model.train()
             
         return {'eval/dice': np.mean(total_dice)}
+    
     def save_model(self, save_name, save_path):
         save_filename = os.path.join(save_path, save_name)
         train_model = self.train_model.module if hasattr(self.train_model, 'module') else self.train_model
