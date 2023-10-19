@@ -208,10 +208,10 @@ class SegPL:
                 #tensorboard_dict update
                 tb_dict = {}
                 tb_dict['train/sup_loss'] = sup_loss.detach() 
-                tb_dict['train/unsup_loss'] = unsup_loss.detach() 
+                #tb_dict['train/unsup_loss'] = unsup_loss.detach() 
                 tb_dict['train/total_loss'] = total_loss.detach() 
-                if args.debiased:
-                    tb_dict['train/anti_unsup_loss'] = anti_unsup_loss.detach() 
+                #if args.debiased:
+                #    tb_dict['train/anti_unsup_loss'] = anti_unsup_loss.detach() 
                 tb_dict['lr'] = self.optimizer.param_groups[0]['lr']
                 #tb_dict['train/prefecth_time'] = start_batch.elapsed_time(end_batch)/1000.
                 #tb_dict['train/run_time'] = start_run.elapsed_time(end_run)/1000.
