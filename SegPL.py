@@ -142,7 +142,7 @@ class SegPL:
                 # inference and calculate sup/unsup losses
                 with amp_cm():
                     logits = self.train_model(inputs)
-                    #logits_x_lb = logits[:num_lb]
+                    logits_x_lb = logits
                     #logits_x_ulb = logits[num_lb:]
 
                     del logits
