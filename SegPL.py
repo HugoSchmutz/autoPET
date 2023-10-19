@@ -150,7 +150,7 @@ class SegPL:
                     
                     # Supervised loss
                     sup_loss = (1/2) * self.supervised_loss(logits_x_lb, y_lb)
-                    
+                    """
                     if args.mean_teacher:
                         with torch.no_grad():
                             logits_ema = self.eval_model(inputs)
@@ -184,7 +184,8 @@ class SegPL:
                     else:
                         total_loss = sup_loss + self.lambda_u * unsup_loss
                 del logits_x_lb, logits_x_ulb
-                            
+                """
+                total_loss = sup_loss        
                 # parameter updates
                 if args.amp:
                     scaler.scale(total_loss).backward()
