@@ -145,12 +145,11 @@ class SegPL:
                     logits_x_lb = logits
                     #logits_x_ulb = logits[num_lb:]
 
-                    del logits
                     # hyper-params for update
                     p_cutoff = self.p_fn(self.it)
                     
                     # Supervised loss
-                    sup_loss = (1/2) * self.supervised_loss(logits_x_lb, y_lb)
+                    sup_loss = (1/2) * self.supervised_loss(logits, y_lb)
                     """
                     if args.mean_teacher:
                         with torch.no_grad():
