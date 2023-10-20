@@ -142,15 +142,15 @@ class SegPL:
                 # inference and calculate sup/unsup losses
                 with amp_cm():
                     logits = self.train_model(inputs)
-                    logits_x_lb = logits
-                    #logits_x_ulb = logits[num_lb:]
+                    logits_x_lb = logits[:num_lb]
+                    logits_x_ulb = logits[num_lb:]
 
                     # hyper-params for update
                     p_cutoff = self.p_fn(self.it)
                     
                     # Supervised loss
-                    sup_loss = (1/2) * self.supervised_loss(logits, y_lb)
-                    """
+                    sup_loss = (1/2) * self.supervised_loss(logits_x_lb, y_lb)
+                    
                     if args.mean_teacher:
                         with torch.no_grad():
                             logits_ema = self.eval_model(inputs)
@@ -184,7 +184,7 @@ class SegPL:
                     else:
                         total_loss = sup_loss + self.lambda_u * unsup_loss
                 del logits_x_lb, logits_x_ulb
-                """
+                
                 total_loss = sup_loss        
                 # parameter updates
                 if args.amp:
@@ -208,10 +208,10 @@ class SegPL:
                 #tensorboard_dict update
                 tb_dict = {}
                 tb_dict['train/sup_loss'] = sup_loss.detach() 
-                #tb_dict['train/unsup_loss'] = unsup_loss.detach() 
+                tb_dict['train/unsup_loss'] = unsup_loss.detach() 
                 tb_dict['train/total_loss'] = total_loss.detach() 
-                #if args.debiased:
-                #    tb_dict['train/anti_unsup_loss'] = anti_unsup_loss.detach() 
+                if args.debiased:
+                    tb_dict['train/anti_unsup_loss'] = anti_unsup_loss.detach() 
                 tb_dict['lr'] = self.optimizer.param_groups[0]['lr']
                 #tb_dict['train/prefecth_time'] = start_batch.elapsed_time(end_batch)/1000.
                 #tb_dict['train/run_time'] = start_run.elapsed_time(end_run)/1000.
