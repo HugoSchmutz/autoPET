@@ -133,7 +133,7 @@ class SegPL:
                 
                 x_lb, y_lb = prepare_batch(batch, args.gpu)
                 x_ulb, _ = prepare_batch(batch_u, args.gpu)
-
+                print(y_lb[:,1].sum(1))
                 num_lb = x_lb.shape[0]            
                 #weak and strong augmentations for labelled and unlabelled data
 
@@ -150,7 +150,7 @@ class SegPL:
                     
                     # Supervised loss
                     sup_loss = (1/2) * self.supervised_loss(logits_x_lb, y_lb)
-                    
+                    print(sup_loss)
                     if args.mean_teacher:
                         with torch.no_grad():
                             logits_ema = self.eval_model(inputs)
@@ -167,7 +167,6 @@ class SegPL:
                     pseudo_labels = (probabilities>p_cutoff).float().detach()
                     
                     unsup_loss = self.unsupervised_loss(logits_x_ulb, pseudo_labels)
-
                     
                     #Debaised Unsupervised losses
                     if args.mean_teacher:
