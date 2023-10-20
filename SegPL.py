@@ -197,7 +197,7 @@ class SegPL:
                     scaler.update()
                 else:
                     total_loss.backward()
-                    self._print_grad()
+                    #self._print_grad()
                     self.optimizer.step()
                 if self.scheduler is not None: 
                     self.scheduler.step()

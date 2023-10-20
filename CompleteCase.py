@@ -147,7 +147,7 @@ class CompleteCase:
                 else:
                     total_loss.backward()
                     self.optimizer.step()
-                    self._print_grad()
+                    #self._print_grad()
 
                 if self.scheduler is not None: 
                     self.scheduler.step()
