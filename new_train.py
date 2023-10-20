@@ -335,7 +335,7 @@ def main_worker(gpu, ngpus_per_node, args):
     loader_dict['eval'] = torch.utils.data.DataLoader(eval_dset, batch_size=1, num_workers=0, collate_fn = list_data_collate)
 
 
-    ## set DataLoader on SegPL
+    ## set DataLoader
     model.set_data_loader(loader_dict)
     
     #If args.resume, load checkpoints from args.load_path
