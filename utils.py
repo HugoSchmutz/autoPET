@@ -63,11 +63,11 @@ def set_loss(loss_name, to_onehot_y, softmax, include_background, batch, count_u
     elif loss_name == 'DiceCE':
         loss = monai.losses.DiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     elif loss_name == 'CE':
-        loss = monai.losses.DiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, lambda_dice=0.0)
+        loss = monai.losses.CELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, lambda_dice=0.0)
     elif loss_name == 'MSE':
         loss = MSELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     elif loss_name == 'maskedCE':
-        loss = MaskedDiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, count_unselected_pixels=count_unselected_pixels, lambda_dice=0.0)
+        loss = MaskedCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, count_unselected_pixels=count_unselected_pixels, lambda_dice=0.0)
     elif loss_name == 'maskedDiceCE':
         loss = MaskedDiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, count_unselected_pixels=count_unselected_pixels)
     elif loss_name == 'maskedDice':
