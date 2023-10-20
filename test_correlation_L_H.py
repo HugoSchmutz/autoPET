@@ -205,3 +205,4 @@ if __name__ == "__main__":
         
     losses = pd.DataFrame(losses)
     losses.to_csv(f'losses_{args.num_labels}.csv')
+    losses.corr().to_csv(f'losses_corr_{args.num_labels}.csv')
