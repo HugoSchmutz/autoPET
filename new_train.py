@@ -310,8 +310,8 @@ def main_worker(gpu, ngpus_per_node, args):
         samples_per_volume=args.samples_per_volume,
         sampler=sampler,
         num_workers=args.num_workers,
-        shuffle_subjects=False,
-        shuffle_patches=False,
+        shuffle_subjects=True,
+        shuffle_patches=True,
     )
 
     patches_dict['train_ulb'] = tio.Queue(
@@ -320,8 +320,8 @@ def main_worker(gpu, ngpus_per_node, args):
         samples_per_volume=args.samples_per_volume,
         sampler=sampler,
         num_workers=args.num_workers,
-        shuffle_subjects=False,
-        shuffle_patches=False,
+        shuffle_subjects=True,
+        shuffle_patches=True,
     )
 
 
