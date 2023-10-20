@@ -137,4 +137,6 @@ if __name__ == "__main__":
         pseudo_labels = (probabilities>0.5).float().detach()
         unsup_loss = unsupervised_loss(logits, pseudo_labels)
         losses['pseudo-label'].append(unsup_loss.item())
-                
+        
+        
+        print(losses)
