@@ -80,10 +80,16 @@ if __name__ == "__main__":
     net = _net_builder(num_classes=args.num_classes, dropout=args.dropout)
     net.load_state_dict(load_model)
     
+    load_eval_model = checkpoint['eval_model']
+    eval_model = _net_builder(num_classes=args.num_classes, dropout=args.dropout)
+    eval_model.load_state_dict(load_model)
+    
     print(torch.cuda.is_available())
     if torch.cuda.is_available():
         net.cuda()
+        eval_model.cuda()
     net.eval()
+    eval_model.eval()
     # Prepare data loaders
     patch_size = (args.patch_d0, args.patch_d1, args.patch_d2)
     sampler = tio.data.UniformSampler(patch_size)
@@ -117,24 +123,84 @@ if __name__ == "__main__":
         patches_dict['train_ulb'], batch_size=1)
     
     
-    supervised_loss = set_loss(args.lb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
-    unsupervised_loss = set_loss(args.ulb_loss_fct, to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
+    
+    DiceCE = set_loss('DiceCE', to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
+    CE = set_loss('CE', to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
+    MSE = set_loss('MSE', to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
+    Dice = set_loss('Dice', to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
     
     
-    losses = {'supervised':[], 'pseudo-label':[]}
+    maskedDiceCE = set_loss('maskedDiceCE', to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
+    maskedCE = set_loss('maskedCE', to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
+    maskedMSE = set_loss('maskedMSE', to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
+    maskedDice = set_loss('maskedDice', to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)    
+    
+    list_loss = [Dice, CE, MSE, DiceCE]
+    list_masked_loss = [maskedDice, maskedCE, maskedMSE, maskedDiceCE]
+    losses = {'supervised':[], 
+              'Dice':[], 'MSE':[], 'CE':[], 'DiceCE':[], 
+              'maskedDice':[], 'maskedMSE':[], 'maskedCE':[], 'maskedDiceCE':[],
+              'MTDice':[], 'MTMSE':[], 'MTCE':[], 'MTDiceCE':[], 
+              'MTmaskedDice':[], 'MTmaskedMSE':[], 'MTmaskedCE':[], 'MTmaskedDiceCE':[], 
+              }
     for i, batch in enumerate(tqdm(loader_dict['train_ulb'])):
                 
         inputs, y = prepare_batch(batch, args.gpu)
         logits = net(inputs) 
         # Supervised loss
-        sup_loss = supervised_loss(logits, y)
+        sup_loss = DiceCE(logits, y)
         losses['supervised'].append(sup_loss.item())
         
         #Pseudo-label
         probabilities = torch.nn.Softmax(dim=1)(logits)        
         pseudo_labels = (probabilities>0.5).float().detach()
-        unsup_loss = unsupervised_loss(logits, pseudo_labels)
-        losses['pseudo-label'].append(unsup_loss.item())
+        
+        unsup_loss = Dice(logits, pseudo_labels)
+        losses['Dice'].append(unsup_loss.item())
+        unsup_loss = CE(logits, pseudo_labels)
+        losses['CE'].append(unsup_loss.item())
+        unsup_loss = MSE(logits, pseudo_labels)
+        losses['MSE'].append(unsup_loss.item())
+        unsup_loss = DiceCE(logits, pseudo_labels)
+        losses['DiceCE'].append(unsup_loss.item())
+        
+        mask_pl = (probabilities>0.95).long() + (probabilities<1 - 0.95).long()
+        
+        unsup_loss = maskedDice(logits, pseudo_labels, mask=mask_pl[:,:1])
+        losses['maskedDice'].append(unsup_loss.item())
+        unsup_loss = maskedCE(logits, pseudo_labels, mask=mask_pl[:,:1])
+        losses['maskedCE'].append(unsup_loss.item())
+        unsup_loss = maskedMSE(logits, pseudo_labels, mask=mask_pl[:,:1])
+        losses['maskedMSE'].append(unsup_loss.item())
+        unsup_loss = maskedDiceCE(logits, pseudo_labels, mask=mask_pl[:,:1])
+        losses['maskedDiceCE'].append(unsup_loss.item())
+        
+        
+        #Mean teacher
+        logits_ema = eval_model(inputs)
+        probabilities = torch.nn.Softmax(dim=1)(logits_ema)        
+        pseudo_labels = (probabilities>0.5).float().detach()
+        
+        unsup_loss = Dice(logits, pseudo_labels)
+        losses['MTDice'].append(unsup_loss.item())
+        unsup_loss = CE(logits, pseudo_labels)
+        losses['MTCE'].append(unsup_loss.item())
+        unsup_loss = MSE(logits, pseudo_labels)
+        losses['MTMSE'].append(unsup_loss.item())
+        unsup_loss = DiceCE(logits, pseudo_labels)
+        losses['MTDiceCE'].append(unsup_loss.item())
+        
+        mask_pl = (probabilities>0.95).long() + (probabilities<1 - 0.95).long()
+        
+        unsup_loss = maskedDice(logits, pseudo_labels, mask=mask_pl[:,:1])
+        losses['MTmaskedDice'].append(unsup_loss.item())
+        unsup_loss = maskedCE(logits, pseudo_labels, mask=mask_pl[:,:1])
+        losses['MTmaskedCE'].append(unsup_loss.item())
+        unsup_loss = maskedMSE(logits, pseudo_labels, mask=mask_pl[:,:1])
+        losses['MTmaskedMSE'].append(unsup_loss.item())
+        unsup_loss = maskedDiceCE(logits, pseudo_labels, mask=mask_pl[:,:1])
+        losses['MTmaskedDiceCE'].append(unsup_loss.item())
+        
         
         
     losses = pd.DataFrame(losses)
