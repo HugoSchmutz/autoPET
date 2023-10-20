@@ -71,6 +71,13 @@ class CompleteCase:
         for buffer_train, buffer_eval in zip(self.train_model.buffers(), self.eval_model.buffers()):
             buffer_eval.copy_(buffer_train)         
     
+    @torch.no_grad()
+    def _print_grad(self):
+        """
+        Momentum update of evaluation model (exponential moving average)
+        """
+        for param_train in self.train_model.parameters():
+            print(param_train.grad.data)
      
     def set_data_loader(self, loader_dict):
         self.loader_dict = loader_dict
@@ -140,6 +147,8 @@ class CompleteCase:
                 else:
                     total_loss.backward()
                     self.optimizer.step()
+                    self._print_grad()
+
                 if self.scheduler is not None: 
                     self.scheduler.step()
                 self.train_model.zero_grad()
