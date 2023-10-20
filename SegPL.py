@@ -89,7 +89,13 @@ class SegPL:
     def set_optimizer(self, optimizer, scheduler=None):
         self.optimizer = optimizer
         self.scheduler = scheduler
-    
+    @torch.no_grad()
+    def _print_grad(self):
+        """
+        Momentum update of evaluation model (exponential moving average)
+        """
+        for param_train in self.train_model.parameters():
+            print(param_train.grad.data)
             
     
     def train(self, args, logger=None):
@@ -191,6 +197,7 @@ class SegPL:
                     scaler.update()
                 else:
                     total_loss.backward()
+                    self._print_grad()
                     self.optimizer.step()
                 if self.scheduler is not None: 
                     self.scheduler.step()
