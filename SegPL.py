@@ -122,8 +122,8 @@ class SegPL:
 
         for epoch in range(args.epoch):
 
-            #for (batch, batch_u) in zip(self.loader_dict['train_lb'], self.loader_dict['train_ulb']):
-            for batch in self.loader_dict['train_lb']:
+            for (batch, batch_u) in zip(self.loader_dict['train_lb'], self.loader_dict['train_ulb']):
+            #for batch in self.loader_dict['train_lb']:
                 
                 # prevent the training iterations exceed args.num_train_iter
                 if self.it > args.num_train_iter:
