@@ -179,10 +179,10 @@ class SegPL_U:
                     else:   
                         probabilities = torch.nn.Softmax(dim=1)(logits_x_lb)    
                     probabilities = torch.nn.Softmax(dim=1)(logits_x_lb)
-                    anti_pseudo_labels = (probabilities>p_cutoff).long().detach()
+                    anti_pseudo_labels = (probabilities>p_cutoff).float().detach()
                     
                     
-                    mask_anti_pl = (probabilities>threshold).float() + (probabilities<1 - threshold).long()
+                    mask_anti_pl = (probabilities>threshold).long() + (probabilities<1 - threshold).long()
                     anti_unsup_loss = self.unsupervised_loss(logits_x_lb, anti_pseudo_labels, mask=mask_anti_pl[:,:1])
                     
                     if args.debiased:
