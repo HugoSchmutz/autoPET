@@ -72,7 +72,7 @@ if __name__ == "__main__":
     cudnn.deterministic = False
     
     print(args.load_path)
-    checkpoint_path = os.path.join(args.load_path, 'model_best.pth')
+    checkpoint_path = os.path.join(args.load_path, 'model_latest.pth')
     checkpoint = torch.load(checkpoint_path)
     load_model = checkpoint['train_model']
     
