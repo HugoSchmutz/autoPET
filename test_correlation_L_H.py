@@ -52,8 +52,6 @@ if __name__ == "__main__":
     parser.add_argument('--patch_d0', type=int, default=128, help='patch size along the first dimension')
     parser.add_argument('--patch_d1', type=int, default=128, help='patch size along the second dimension')
     parser.add_argument('--patch_d2', type=int, default=32, help='patch size along the third dimension')
-    parser.add_argument('--samples_per_volume', type=int, default=10)
-    parser.add_argument('--max_queue_length', type=int, default=400)
     parser.add_argument('--samples_per_volume', type=int, default=30)
     parser.add_argument('--max_queue_length', type=int, default=400)
     '''
