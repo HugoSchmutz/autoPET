@@ -108,7 +108,7 @@ if __name__ == "__main__":
             #    writer.writerows(csv_rows)
     mean_dice_sc = np.mean(metrics, axis=0)[0]
     total_false_pos_vol = np.sum(metrics, axis=0)[1]
-    total_false_negvol = np.mean(metrics, axis=0)[2]
+    total_false_negvol = np.sum(metrics, axis=0)[2]
     mean_mse_volume = np.mean(metrics, axis=0)[5]
     mean_dice_loss = np.mean(metrics, axis=0)[8]
     
@@ -150,3 +150,9 @@ if __name__ == "__main__":
     plt.title(np.corrcoef(res['true_nb_lesions'].values, res['pred_nb_lesions'].values)[0,1])
     plt.savefig(os.path.join(args.load_path,'nb_lesions.pdf'), format = 'pdf')
     print(np.corrcoef(res['true_nb_lesions'].values, res['pred_nb_lesions'].values))
+    ground_truth = res['true_nb_lesions'].values
+    ground_truth[ground_truth>=5]=5
+    predictions = res['pred_nb_lesions'].values
+    predictions[predictions>=5]=5
+    
+    print((ground_truth == predictions).sum()/len(predictions))
