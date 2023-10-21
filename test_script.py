@@ -21,6 +21,9 @@ from tqdm import tqdm
 import monai
 from visualise import plot_diff, show_mip_pet_and_mask
 from matplotlib.backends.backend_pdf import PdfPages
+from monai.data import decollate_batch
+from monai.transforms import AsDiscrete, Compose, EnsureType
+
 
 if __name__ == "__main__":
     import argparse
@@ -74,6 +77,11 @@ if __name__ == "__main__":
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=1, num_workers=0, collate_fn = list_data_collate)
  
     dice_loss_fct = monai.losses.DiceLoss(to_onehot_y=False,softmax=True,include_background=False,batch=True)
+    
+    post_pred = Compose([
+        EnsureType(),
+        AsDiscrete(argmax=True, to_onehot=2),
+    ])
 
     metrics = []  
     filename_pdf = os.path.join(args.load_path,  'instance_MIP_gt_pred.pdf')
@@ -88,7 +96,8 @@ if __name__ == "__main__":
                 for i in range(T_eval):
                     mean_logits = +sliding_window_inference(X, roi_size, sw_batch_size, net, mode="gaussian", overlap=0.50)
                 mean_logits = mean_logits/T_eval
-
+                #mean_logits = [post_pred(i) for i in decollate_batch(mean_logits)]
+                
                 mask_out = torch.argmax(mean_logits, dim=1).detach().cpu().numpy().squeeze()
                 mask_out = mask_out.astype(np.uint8)               
                 
@@ -116,10 +125,10 @@ if __name__ == "__main__":
                 #####################################
                 fig, axes = plt.subplots(1, 3, figsize=(15, 10))
                 # convert to numpy
-                pet_array = sitk.GetArrayViewFromImage(data['pet'][tio.DATA])
-                pred_mask_array = sitk.GetArrayViewFromImage(mask_out)
-                gt_mask_array = sitk.GetArrayViewFromImage(data['segmentation'][tio.DATA][0,1])
-                pet_spacing = data['pet'][tio.DATA].GetSpacing()[::-1]
+                pet_array = np.array(data['pet'][tio.DATA])
+                pred_mask_array = mask_out
+                gt_mask_array = np.array(data['segmentation'][tio.DATA][0,1])
+                pet_spacing = [2.03642, 2.03642, 3.     ]
                 # MIP PET coronal alone
                 show_mip_pet_and_mask(pet_array=pet_array,
                                     mask_array=None,
