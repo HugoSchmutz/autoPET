@@ -109,7 +109,7 @@ if __name__ == "__main__":
                 true_volume = data['segmentation'][tio.DATA][0,1].sum() * voxel_vol
                 print(predicted_tumour_volume, true_volume.item(), abs(predicted_tumour_volume- true_volume.item()))
                 
-                mse_volume = abs(predicted_tumour_volume - true_volume)
+                mse_volume = (predicted_tumour_volume - true_volume)**2
                 
                 dice_sc, false_pos_vol, false_neg_vol, true_nb_lesions, pred_nb_lesions = compute_metrics(mask_out, data['segmentation'][tio.DATA][0,1])
                 metrics.append([dice_sc, false_pos_vol, false_neg_vol, predicted_tumour_volume, true_volume, mse_volume, true_nb_lesions, pred_nb_lesions, dice_loss])
