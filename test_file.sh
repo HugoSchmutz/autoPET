@@ -1,6 +1,6 @@
 #Pretraining
-python3 test_script.py --load_path ./saved_models/CC_pretraining_200/
-python3 test_script.py --load_path ./saved_models/CC_pretraining_50/
+python3 test_script.py --load_path ./saved_models/CC_200_pretraining/
+python3 test_script.py --load_path ./saved_models/CC_50_pretraining/
 
 #CC
 python3 test_script.py --load_path ./saved_models/FT_CC_200_0.0_0/
