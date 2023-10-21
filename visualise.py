@@ -259,12 +259,10 @@ def show_mip_pet_and_mask(pet_array: np.array, mask_array: np.array, axis: Optio
     # reverse z axis => head up
     # numpy shape = (z, y x), nifti/sitk shape = (x, y, z)
     #pet_array = np.flip(pet_array, axis=0)
-    #mask_array = np.flip(mask_array, axis=0) if mask_array is not None else np.zeros(pet_array.shape)
+    mask_array = np.flip(mask_array, axis=0) if mask_array is not None else np.zeros(pet_array.shape)
 
     # apply MIP
-    print(pet_array.shape, axis)
     pet_array = np.max(pet_array, axis=axis)
-    print(mask_array.shape)
     mask_array = np.max(mask_array, axis=axis)
     
     # convert to RGB
