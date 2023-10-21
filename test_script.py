@@ -125,6 +125,7 @@ if __name__ == "__main__":
                 #####################################
                 fig, axes = plt.subplots(1, 3, figsize=(15, 10))
                 # convert to numpy
+                print(data['pet'][tio.DATA].shape)
                 pet_array = np.array(data['pet'][tio.DATA])
                 pred_mask_array = mask_out
                 gt_mask_array = np.array(data['segmentation'][tio.DATA][0,1])
