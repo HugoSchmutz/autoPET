@@ -109,7 +109,7 @@ if __name__ == "__main__":
                 true_volume = data['segmentation'][tio.DATA][0,1].sum() * voxel_vol
                 
                 mse_volume = (predicted_tumour_volume - true_volume.item())**2/(true_volume.item()+10**(-6))**2
-                print(mse_volume, true_volume.item())
+                print(mse_volume, true_volume.item(), predicted_tumour_volume)
                 dice_sc, false_pos_vol, false_neg_vol, true_nb_lesions, pred_nb_lesions = compute_metrics(mask_out, data['segmentation'][tio.DATA][0,1])
                 metrics.append([dice_sc, false_pos_vol, false_neg_vol, predicted_tumour_volume, true_volume, mse_volume, true_nb_lesions, pred_nb_lesions, dice_loss])
                 
@@ -168,7 +168,6 @@ if __name__ == "__main__":
     print(f'Mean Dice: {mean_dice_sc:0.3f}, Mean Dice Loss: {mean_dice_loss:0.3f}, False positive: {total_false_pos_vol:0.3f}, False negative: {total_false_negvol:0.3f}, Mean MSE volume: {mean_mse_volume:0.3f}')
     
     metrics = np.array(metrics)
-    print(metrics[:,5])
     res= pd.DataFrame({'dice_sc':metrics[:,0],
                       'false_pos_vol':metrics[:,1], 
                       'false_neg_vol':metrics[:,2],
