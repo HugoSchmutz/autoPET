@@ -264,6 +264,7 @@ def show_mip_pet_and_mask(pet_array: np.array, mask_array: np.array, axis: Optio
     # apply MIP
     print(pet_array.shape, axis)
     pet_array = np.max(pet_array, axis=axis)
+    print(mask_array.shape)
     mask_array = np.max(mask_array, axis=axis)
     
     # convert to RGB
