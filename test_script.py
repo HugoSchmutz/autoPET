@@ -163,7 +163,7 @@ if __name__ == "__main__":
     total_false_negvol = np.sum(metrics, axis=0)[2]
     mean_mse_volume = np.mean(metrics, axis=0)[5]
     mean_dice_loss = np.mean(metrics, axis=0)[8]
-    print(metrics[5])
+    print(metrics[:,5])
     print(f'Mean Dice: {mean_dice_sc:0.3f}, Mean Dice Loss: {mean_dice_loss:0.3f}, False positive: {total_false_pos_vol:0.3f}, False negative: {total_false_negvol:0.3f}, Mean MSE volume: {mean_mse_volume:0.3f}')
     
     metrics = np.array(metrics)
