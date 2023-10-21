@@ -127,8 +127,8 @@ if __name__ == "__main__":
                 # convert to numpy
                 
                 pet=tio.ScalarImage(os.path.join(data['path'][0], 'SUV.nii'))
-                print(pet[0].shape)
-                pet_array = np.array(pet[0])
+                print(pet[tio.DATA].shape)
+                pet_array = np.array(pet[tio.DATA][0])
                 pred_mask_array = mask_out
                 gt_mask_array = np.array(data['segmentation'][tio.DATA][0,1])
                 pet_spacing = [2.03642, 2.03642, 3.     ]
