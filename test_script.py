@@ -107,7 +107,6 @@ if __name__ == "__main__":
                 
                 predicted_tumour_volume = mask_out.sum() * voxel_vol
                 true_volume = data['segmentation'][tio.DATA][0,1].sum() * voxel_vol
-                print(predicted_tumour_volume, true_volume.item(), abs(predicted_tumour_volume- true_volume.item()))
                 
                 mse_volume = (predicted_tumour_volume - true_volume)**2/true_volume**2
                 
