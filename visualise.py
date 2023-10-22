@@ -278,7 +278,7 @@ def show_mip_pet_and_mask(pet_array: np.array, mask_array: np.array, axis: Optio
     if labels is None:
         # generate dummy info
         class_ids, class_names = np.ones(bbox.shape[0], dtype=int), ["", ""]
-        colors = None
+        colors = [(0, 1, 0, .8)] * mask_array.shape[2]
     else:
         assert len(labels) == bbox.shape[0]
         class_ids = np.arange(bbox.shape[0], dtype=int)
