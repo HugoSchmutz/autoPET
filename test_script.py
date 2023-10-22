@@ -127,7 +127,7 @@ if __name__ == "__main__":
                 fig, axes = plt.subplots(1, 3, figsize=(15, 10))
                 # convert to numpy
                 
-                pet=tio.ScalarImage(os.path.join(data['path'][0], 'SUV.nii'))
+                pet=standard_transform = tio.ToCanonical()(tio.ScalarImage(os.path.join(data['path'][0], 'SUV.nii')))
                 pet_array = np.array(pet[tio.DATA][0])
                 pred_mask_array = mask_out
                 gt_mask_array = np.array(data['segmentation'][tio.DATA][0,1])
@@ -141,12 +141,12 @@ if __name__ == "__main__":
                 aspect = [pet_spacing[ii] for ii in range(3) if ii != 1]
                 axes[0].set_aspect(aspect[0]/aspect[1])
                 # MIP coronal
-                plot_diff(pet_array, gt_mask_array, pred_mask_array,
+                plot_diff(pet_array.T, gt_mask_array.T, pred_mask_array.T,
                         axis=1, ax=axes[1], title='')
                 # aspect = [pet_spacing[ii] for ii in range(3) if ii != 1]
                 axes[1].set_aspect(aspect[0]/aspect[1])
                 # MIP sagittal
-                plot_diff(pet_array, gt_mask_array, pred_mask_array,
+                plot_diff(pet_array.T, gt_mask_array.T, pred_mask_array.T,
                         axis=2, ax=axes[2], title='')
                 aspect = [pet_spacing[ii] for ii in range(3) if ii != 2]
                 axes[2].set_aspect(aspect[0]/aspect[1])
