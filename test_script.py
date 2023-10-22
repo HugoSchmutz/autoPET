@@ -194,13 +194,17 @@ if __name__ == "__main__":
     
     plt.figure()
     sns.regplot(x="true_volume", y="predicted_volume", data=res)
-    plt.title(np.corrcoef(res['predicted_volume'].values, res['true_volume'].values)[0,1])
+    plt.title('Correlation: {:0.3f}'.format(np.corrcoef(res['predicted_volume'].values, res['true_volume'].values)[0,1]))
+    plt.xlabel('Ground truth volume')
+    plt.ylabel('Predicted volume')
     plt.savefig(os.path.join(args.load_path,'volume.pdf'), format = 'pdf')
     print(np.corrcoef(res['predicted_volume'].values, res['true_volume'].values))
     
     plt.figure()
     sns.regplot(x="true_nb_lesions", y="pred_nb_lesions", data=res)
-    plt.title(np.corrcoef(res['true_nb_lesions'].values, res['pred_nb_lesions'].values)[0,1])
+    plt.xlabel('Ground truth number of lesions')
+    plt.ylabel('Predicted number of lesions')
+    plt.title('Correlation: {:0.3f}'.format(np.corrcoef(res['true_nb_lesions'].values, res['pred_nb_lesions'].values)[0,1]))
     plt.savefig(os.path.join(args.load_path,'nb_lesions.pdf'), format = 'pdf')
     print(np.corrcoef(res['true_nb_lesions'].values, res['pred_nb_lesions'].values))
     ground_truth = res['true_nb_lesions'].values
