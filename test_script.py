@@ -131,7 +131,7 @@ if __name__ == "__main__":
                 pet_array = np.array(pet[tio.DATA][0]).T
                 pred_mask_array = mask_out.T
                 gt_mask_array = np.array(data['segmentation'][tio.DATA][0,1]).T
-                pet_spacing = pet.header['pixdim'][1:4]
+                pet_spacing = np.array([2.03642, 2.03642, 3.     ]).T
                 # MIP PET coronal alone
                 show_mip_pet_and_mask(pet_array=pet_array,
                                     mask_array=None,
