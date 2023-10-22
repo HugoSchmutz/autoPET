@@ -134,7 +134,7 @@ if __name__ == "__main__":
                 pet_spacing = np.array([3.,2.03642, 2.03642     ])
                 # MIP PET coronal alone
                 show_mip_pet_and_mask(pet_array=pet_array,
-                                    mask_array=None,
+                                    mask_array=gt_mask_array,
                                     axis=1,
                                     ax=axes[0]
                                     )
