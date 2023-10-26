@@ -130,7 +130,6 @@ class CompleteCase:
                 
                 
                 inputs, y = prepare_batch(batch, args.gpu)
-                print(y[:,1].sum((1,2,3)))
                 #weak and strong augmentations for labelled and unlabelled data
 
                 # inference and calculate sup/unsup losses
