@@ -60,7 +60,7 @@ def change_dist_url(args):
 
 
 def change_run_name(args):
-    name = f'_{args.ulb_loss_fct}_{args.num_labels}_{args.ulb_loss_ratio}_{args.seed}_{args.dropout}'
+    name = f'_{args.ulb_loss_fct}_{args.num_labels}_{args.ulb_loss_ratio}_{args.seed}_{args.dropout}_{args.learning_rate}'
     if args.count_unselected_pixels:
         name = '_normal' + name
     else:
