@@ -64,6 +64,8 @@ def set_loss(loss_name, to_onehot_y, softmax, include_background, batch, count_u
         loss = monai.losses.DiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     elif loss_name == 'CE':
         loss = CELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, lambda_dice=0.0)
+    elif loss_name == 'CE_monai':
+        loss = monai.losses.DiceCELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch, lambda_dice=0.0)
     elif loss_name == 'MSE':
         loss = MSELoss(to_onehot_y=to_onehot_y, softmax=softmax, include_background=include_background, batch=batch)
     elif loss_name == 'maskedCE':

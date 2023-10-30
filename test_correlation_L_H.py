@@ -129,6 +129,8 @@ if __name__ == "__main__":
     MSE = set_loss('MSE', to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
     Dice = set_loss('Dice', to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
     
+    CE_monai = set_loss('CE_monai', to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
+    
     
     maskedDiceCE = set_loss('maskedDiceCE', to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
     maskedCE = set_loss('maskedCE', to_onehot_y=False, softmax=True, include_background=False, batch=False, count_unselected_pixels = args.count_unselected_pixels)
@@ -175,7 +177,9 @@ if __name__ == "__main__":
         unsup_loss = maskedDiceCE(logits, pseudo_labels, mask=mask_pl[:,:1])
         losses['maskedDiceCE'].append(unsup_loss.item())
         
-        
+        print(losses['Dice'][-1], losses['CE'][-1], losses['DiceCE'][-1])
+        print(CE_monai(logits, pseudo_labels))
+        print(losses['maskedDice'][-1], losses['maskedCE'][-1], losses['maskedDiceCE'][-1])
         #Mean teacher
         logits_ema = eval_model(inputs)
         probabilities = torch.nn.Softmax(dim=1)(logits_ema)        
