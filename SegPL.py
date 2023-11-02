@@ -140,7 +140,6 @@ class SegPL:
                 
                 x_lb, y_lb = prepare_batch(batch, args.gpu)
                 x_ulb, _ = prepare_batch(batch, args.gpu)
-                print(y_lb[:,1].sum((1,2,3)))
                 num_lb = x_lb.shape[0]            
                 #weak and strong augmentations for labelled and unlabelled data
 
