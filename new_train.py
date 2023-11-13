@@ -410,6 +410,7 @@ if __name__ == "__main__":
     parser.add_argument('--MC_dropout', action='store_true')
     parser.add_argument('--UA', action='store_true')
     parser.add_argument('--mean_teacher', action='store_true', help='generation of pseudo-labels with mean teacher')
+    parser.add_argument('--pi_model', action='store_true', help='pi_model')
     parser.add_argument('--SegPL', action='store_true', help='Segmentation Pseudo Label')
     parser.add_argument('--SegPL_U', action='store_true', help='Segmentation Pseudo Label masked by uncertainty')
     '''
