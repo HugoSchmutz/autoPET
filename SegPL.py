@@ -161,10 +161,21 @@ class SegPL:
                             logits_x_lb_ema = logits_ema[:num_lb]
                             logits_x_ulb_ema = logits_ema[num_lb:]
                         del logits_ema
+                    
+                    if args.pi_model:
+                        with torch.no_grad():
+                            self.train_model.eval()
+                            logits_no_dropout = self.eval_model(inputs)
+                            logits_x_lb_no_dropout = logits_no_dropout[:num_lb]
+                            logits_x_ulb_no_dropout = logits_no_dropout[num_lb:]
+                            self.train_model.train()
+                        del logits_no_dropout
 
                     #Unsupervised losses
                     if args.mean_teacher:
                         probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb_ema)
+                    elif args.pi_model:
+                         probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb_no_dropout)      
                     else:   
                         probabilities = torch.nn.Softmax(dim=1)(logits_x_ulb)
                         
@@ -175,6 +186,8 @@ class SegPL:
                     #Debaised Unsupervised losses
                     if args.mean_teacher:
                         probabilities = torch.nn.Softmax(dim=1)(logits_x_lb_ema)
+                    elif args.pi_model:
+                        probabilities = torch.nn.Softmax(dim=1)(logits_x_lb_no_dropout)      
                     else:   
                         probabilities = torch.nn.Softmax(dim=1)(logits_x_lb)
                     anti_pseudo_labels = (probabilities>p_cutoff).float().detach()
