@@ -76,6 +76,8 @@ def change_run_name(args):
     
     if args.mean_teacher:
         name = 'MT' + name
+    elif args.pi_model:
+        name = 'PI' + name
     elif args.SegPL or args.SegPL_U or args.MC_dropout:
         name = 'PL' + name
     else:
