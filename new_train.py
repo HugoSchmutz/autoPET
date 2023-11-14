@@ -292,8 +292,14 @@ def main_worker(gpu, ngpus_per_node, args):
     
     # Prepare data loaders
     patch_size = (args.patch_d0, args.patch_d1, args.patch_d2)
-    sampler = tio.data.UniformSampler(patch_size)
-
+    #sampler = tio.data.UniformSampler(patch_size)
+    
+    probabilities = {0: 0.5, 1: 0.5}
+    sampler = tio.data.LabelSampler(
+        patch_size=patch_size,
+        label_name='segmentation',
+        label_probabilities=probabilities,
+    )
     lb_dset, ulb_dset, eval_dset = get_ssl_dataset(args.data_dir, 
                                                    args.patients_list_dir,
                                                    args.num_labels,
