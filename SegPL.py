@@ -141,7 +141,7 @@ class SegPL:
                 x_lb, y_lb = prepare_batch(batch, args.gpu)
                 x_ulb, _ = prepare_batch(batch, args.gpu)
                 num_lb = x_lb.shape[0]    
-                print(y_lb.sum((1,2,3)))        
+                print(y_lb.shape)        
                 #weak and strong augmentations for labelled and unlabelled data
 
                 inputs = torch.cat((x_lb, x_ulb))
