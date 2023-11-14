@@ -150,7 +150,7 @@ def get_exams(data_path, patients_list):
             
 def get_exams_train(data_path, patients_list_dir, num_eval):
     #patients = os.listdir(data_path)
-    patients = list(np.load(os.path.join(patients_list_dir,'positive_patients_train.npy')))
+    patients = list(np.load(os.path.join(patients_list_dir,'new_positive_patients_train.npy')))
     patients_train, patients_test = train_test_split(patients, test_size = num_eval, random_state=0)
     all_paths_train, all_paths_test = get_exams(data_path, patients_train), get_exams(data_path,patients_test)
 
@@ -251,7 +251,7 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 def get_exams_test(data_path, patients_list_dir):
-    patients = list(np.load(os.path.join(patients_list_dir,'positive_patients_test.npy')))
+    patients = list(np.load(os.path.join(patients_list_dir,'new_positive_patients_test.npy')))
     all_paths_test = get_exams(data_path, patients)
     return(all_paths_test)
 
