@@ -250,13 +250,17 @@ def get_logger(name, save_path=None, level='INFO'):
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-def get_exams_test(data_path, patients_list_dir):
-    patients = list(np.load(os.path.join(patients_list_dir,'new_positive_patients_test.npy')))
+def get_exams_test(data_path, patients_list_dir, new=False):
+    if new:
+        patients = list(np.load(os.path.join(patients_list_dir,'new_positive_patients_test.npy')))
+    else:
+        patients = list(np.load(os.path.join(patients_list_dir,'positive_patients_test.npy')))
+        
     all_paths_test = get_exams(data_path, patients)
     return(all_paths_test)
 
-def get_test_dataset(data_path, patients_list_dir, transform):
-    all_paths_test = get_exams_test(data_path, patients_list_dir)
+def get_test_dataset(data_path, patients_list_dir, transform, new=False):
+    all_paths_test = get_exams_test(data_path, patients_list_dir, new=new)
     subjects_test = subjects_list(all_paths_test)
     
     test_set = tio.SubjectsDataset(

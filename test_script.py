@@ -50,7 +50,7 @@ if __name__ == "__main__":
     parser.add_argument('--data_dir', type=str, default='./data/FDG-PET-CT-Lesions_nifti/')
     parser.add_argument('--patients_list_dir', type=str, default='./data/FDG-PET-CT-Lesions_nifti/')
     parser.add_argument('--num_classes', type=int, default=2)
-    
+    parser.add_argument('--new_test_set', action = 'store_true', help= 'use the new and bigger test set.')
     '''
     GPU
     '''
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     net.eval()
     
     T_eval = 1
-    test_set = get_test_dataset(args.data_dir, args.patients_list_dir, standard_transform)
+    test_set = get_test_dataset(args.data_dir, args.patients_list_dir, standard_transform, new=args.new_test_set)
     
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=1, num_workers=0, collate_fn = list_data_collate)
  
