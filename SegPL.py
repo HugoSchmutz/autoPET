@@ -39,8 +39,8 @@ class SegPL:
         # network is builded only by num_classes,
         # other configs are covered in main.py
         
-        self.train_model = net_builder(num_classes=num_classes, dropout = dropout) 
-        self.eval_model = net_builder(num_classes=num_classes, dropout = dropout)
+        self.train_model = net_builder(num_classes=num_classes, dropout=dropout) 
+        self.eval_model = net_builder(num_classes=num_classes, dropout=dropout)
         self.num_eval_iter = num_eval_iter
         self.p_fn = Get_Scalar(p_cutoff) #confidence cutoff function
         self.lambda_u = lambda_u
@@ -74,6 +74,13 @@ class SegPL:
         for buffer_train, buffer_eval in zip(self.train_model.buffers(), self.eval_model.buffers()):
             buffer_eval.copy_(buffer_train)         
     
+    @torch.no_grad()
+    def _print_grad(self):
+        """
+        Momentum update of evaluation model (exponential moving average)
+        """
+        for param_train in self.train_model.parameters():
+            print(param_train.grad.data)
      
     def set_data_loader(self, loader_dict):
         self.loader_dict = loader_dict
@@ -89,13 +96,7 @@ class SegPL:
     def set_optimizer(self, optimizer, scheduler=None):
         self.optimizer = optimizer
         self.scheduler = scheduler
-    @torch.no_grad()
-    def _print_grad(self):
-        """
-        Momentum update of evaluation model (exponential moving average)
-        """
-        for param_train in self.train_model.parameters():
-            print(param_train.grad.data)
+    
             
     
     def train(self, args, logger=None):
@@ -122,9 +123,7 @@ class SegPL:
 
         for epoch in range(args.epoch):
 
-            for (batch, batch_u) in zip(self.loader_dict['train_lb'], self.loader_dict['train_ulb']):
-            #for batch in self.loader_dict['train_lb']:
-                
+            for (batch, batch_u) in zip(self.loader_dict['train_lb'], self.loader_dict['train_ulb']):                
                 # prevent the training iterations exceed args.num_train_iter
                 if self.it > args.num_train_iter:
                     break
@@ -136,15 +135,13 @@ class SegPL:
                 start_run.record()
                 
                 
-                
-                
                 x_lb, y_lb = prepare_batch(batch, args.gpu)
                 x_ulb, _ = prepare_batch(batch, args.gpu)
                 num_lb = x_lb.shape[0]    
                 #print(y_lb[:,1].sum((1,2,3)))        
                 #weak and strong augmentations for labelled and unlabelled data
-
                 inputs = torch.cat((x_lb, x_ulb))
+                print(inputs.shape)
                 # inference and calculate sup/unsup losses
                 with amp_cm():
                     logits = self.train_model(inputs)
@@ -202,7 +199,6 @@ class SegPL:
                         total_loss = sup_loss + self.lambda_u * unsup_loss
                 del logits_x_lb, logits_x_ulb
                 
-                total_loss = sup_loss        
                 # parameter updates
                 if args.amp:
                     scaler.scale(total_loss).backward()
@@ -210,8 +206,9 @@ class SegPL:
                     scaler.update()
                 else:
                     total_loss.backward()
-                    #self._print_grad()
                     self.optimizer.step()
+                    #self._print_grad()
+
                 if self.scheduler is not None: 
                     self.scheduler.step()
                 self.train_model.zero_grad()
@@ -237,16 +234,16 @@ class SegPL:
                 
                 if self.it % self.num_eval_iter == 0:
 
-                    eval_dict = self.evaluate_MC(args=args)
+                    eval_dict = self.evaluate(args=args)
                     tb_dict.update(eval_dict)
                     
                     save_path = os.path.join(args.save_dir, args.save_name)
                     
-                    if tb_dict['eval/dice'].item() < best_eval_dice:
-                        best_eval_dice = tb_dict['eval/dice'].item()
+                    if tb_dict['eval/dice'] <= best_eval_dice:
+                        best_eval_dice = tb_dict['eval/dice']
                         best_it = self.it
                         self.save_model('model_best.pth', save_path)
-
+                    
                     self.print_fn(f"{self.it} iteration, USE_EMA: {hasattr(self, 'eval_model')}, {tb_dict}, BEST_EVAL_DICE: {best_eval_dice}, at {best_it} iters")
                 torch.cuda.empty_cache()
                 if not args.multiprocessing_distributed or \
@@ -290,33 +287,7 @@ class SegPL:
             
         return {'eval/dice': np.mean(total_dice)}
 
-    @torch.no_grad()
-    def evaluate_MC(self, eval_loader=None, args=None):
-        use_ema = hasattr(self, 'eval_model')
-        
-        eval_model = self.eval_model if use_ema else self.train_model
-        eval_model.train()
-        if eval_loader is None:
-            eval_loader = self.loader_dict['eval']
-        
-        total_dice = []
-        roi_size = (128, 128, 32)
-        sw_batch_size = 40
-
-        for batch in eval_loader:
-            x, y = prepare_batch(batch, args.gpu)
-            mean_logits = torch.zeros(x.shape).cuda(args.gpu)
-            for i in range(self.T_eval):
-                with torch.no_grad():
-                    mean_logits += sliding_window_inference(x, roi_size, sw_batch_size, eval_model, mode="gaussian", overlap=0.50)
-            mean_logits = mean_logits/self.T_eval
-            
-            dice = self.dice_loss(mean_logits, y).detach().cpu().item()
-            total_dice.append(dice)        
-        if not use_ema:
-            eval_model.train()
-            
-        return {'eval/dice': np.mean(total_dice)}
+    
     
     def save_model(self, save_name, save_path):
         save_filename = os.path.join(save_path, save_name)

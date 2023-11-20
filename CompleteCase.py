@@ -131,7 +131,7 @@ class CompleteCase:
                 
                 inputs, y = prepare_batch(batch, args.gpu)
                 #weak and strong augmentations for labelled and unlabelled data
-
+                print(inputs.shape)
                 # inference and calculate sup/unsup losses
                 with amp_cm():
                     logits = self.train_model(inputs)                
@@ -184,7 +184,7 @@ class CompleteCase:
                 torch.cuda.empty_cache()
                 if not args.multiprocessing_distributed or \
                         (args.multiprocessing_distributed and args.rank % ngpus_per_node == 0):
-                                        
+
                     if not self.tb_log is None:
                         self.tb_log.update(tb_dict, self.it)
                     
@@ -216,7 +216,8 @@ class CompleteCase:
             x, y = prepare_batch(batch, args.gpu)
             logits = sliding_window_inference(x, roi_size, sw_batch_size, eval_model, mode="gaussian", overlap=0.50)
             dice = self.dice_loss(logits, y).detach().cpu().item()
-            total_dice.append(dice)        
+            if y[0,1].sum().item() >0:
+                total_dice.append(dice)        
         if not use_ema:
             eval_model.train()
             
