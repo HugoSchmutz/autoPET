@@ -141,7 +141,6 @@ class SegPL:
                 #print(y_lb[:,1].sum((1,2,3)))        
                 #weak and strong augmentations for labelled and unlabelled data
                 inputs = torch.cat((x_lb, x_ulb))
-                print(inputs.shape)
                 # inference and calculate sup/unsup losses
                 with amp_cm():
                     logits = self.train_model(inputs)

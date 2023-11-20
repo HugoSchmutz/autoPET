@@ -131,7 +131,7 @@ class CompleteCase:
                 
                 inputs, y = prepare_batch(batch, args.gpu)
                 #weak and strong augmentations for labelled and unlabelled data
-                print(inputs.shape)
+
                 # inference and calculate sup/unsup losses
                 with amp_cm():
                     logits = self.train_model(inputs)                

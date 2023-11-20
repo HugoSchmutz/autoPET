@@ -322,7 +322,7 @@ def nii2numpy(nii_path):
 
 def con_comp(seg_array):
     # input: a binary segmentation array output: an array with seperated (indexed) connected components of the segmentation array
-    connectivity = 26
+    connectivity = 18
     conn_comp = cc3d.connected_components(seg_array, connectivity=connectivity)
     return conn_comp
 
