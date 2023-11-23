@@ -15,11 +15,11 @@ from tqdm import tqdm
 def find_studies(path_to_data):
     # find all studies
     path_root = plb.Path(path_to_data)
-    ct_studies = os.listdir(os.path.join(path_root, 'ct'))
+    ct_studies = os.listdir(os.path.join(path_root, 'CT'))
     ct_studies = [x.split('.')[0] for x in ct_studies]
-    pt_studies = os.listdir(os.path.join(path_root, 'pt'))
+    pt_studies = os.listdir(os.path.join(path_root, 'PT'))
     pt_studies = [x.split('.')[0] for x in ct_studies]
-    seg_studies = os.listdir(os.path.join(path_root, 'seg'))
+    seg_studies = os.listdir(os.path.join(path_root, 'SEG'))
     
     
     
