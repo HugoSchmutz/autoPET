@@ -58,7 +58,7 @@ def resample_images(path_to_data, patients_list, studies_list, nii_out_root):
         #Aggregate and resample segmentations:        
         new_data = np.zeros(PET.get_fdata().shape) 
         for seg in SEG_list:
-            SEG = nib.load(os.path.join(os.path.join(os.path.join(study_dir_in, 'SEG'),study, seg)))
+            SEG = nib.load(os.path.join(os.path.join(os.path.join(path_to_data, 'SEG'),study, seg)))
             SEGres = nilearn.image.resample_to_img(SEG, PET, fill_value=-1024)
             SEG_data = np.copy(SEGres.get_fdata())
             new_data = new_data + SEG_data
