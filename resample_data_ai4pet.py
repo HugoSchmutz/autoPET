@@ -43,7 +43,7 @@ def resample_images(path_to_data, patients_list, studies_list, nii_out_root):
         patient_dir_out = os.path.join(nii_out_root, patient)
         
         study_dir_in = os.path.join(path_to_data, date)
-        study_dir_out = os.path.join(patient_dir_out, study_dir_out)
+        study_dir_out = os.path.join(patient_dir_out, date)
         os.makedirs(study_dir_out, exist_ok=False)
 
         print("The following patient directory is being processed: ", patient, date)
