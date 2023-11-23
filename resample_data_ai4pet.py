@@ -1,12 +1,8 @@
 import pathlib as plb
-import tempfile
 import os
-import dicom2nifti
 import nibabel as nib
 import numpy as np
-import pydicom
 import sys
-import shutil
 import nilearn.image
 from tqdm import tqdm
 
