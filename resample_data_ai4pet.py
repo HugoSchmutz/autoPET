@@ -42,16 +42,15 @@ def resample_images(path_to_data, patients_list, studies_list, nii_out_root):
         patient, date = study.split('_')[0], study.split('_')[1]
         patient_dir_out = os.path.join(nii_out_root, patient)
         
-        study_dir_in = os.path.join(path_to_data, date)
         study_dir_out = os.path.join(patient_dir_out, date)
         os.makedirs(study_dir_out, exist_ok=False)
 
         print("The following patient directory is being processed: ", patient, date)
         
-        CT = nib.load(os.path.join(os.path.join(study_dir_in, 'CT'),study + '.nii.gz'))
-        PET = nib.load(os.path.join(os.path.join(study_dir_in, 'PT'),study + '.nii.gz'))
+        CT = nib.load(os.path.join(os.path.join(path_to_data, 'CT'),study + '.nii.gz'))
+        PET = nib.load(os.path.join(os.path.join(path_to_data, 'PT'),study + '.nii.gz'))
         
-        SEG_list = os.listdir(os.path.join(os.path.join(study_dir_in, 'SEG'),study))
+        SEG_list = os.listdir(os.path.join(os.path.join(path_to_data, 'SEG'),study))
         
         #Resample CT
         CTres = nilearn.image.resample_to_img(CT, PET, fill_value=-1024)
