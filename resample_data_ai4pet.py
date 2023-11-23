@@ -35,7 +35,7 @@ def resample_images(path_to_data, patients_list, studies_list, nii_out_root):
     for patient in patients_list:
         
         patient_dir_out = os.path.join(nii_out_root, patient)
-        os.makedirs(patient_dir_out, exist_ok=False)
+        os.makedirs(patient_dir_out, exist_ok=True)
 
     for study in tqdm(studies_list):
         
