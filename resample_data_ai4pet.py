@@ -60,7 +60,7 @@ def resample_images(path_to_data, patients_list, studies_list, nii_out_root):
         for seg in SEG_list:
             SEG = nib.load(os.path.join(os.path.join(os.path.join(path_to_data, 'SEG'),study, seg)))
             SEGres = nilearn.image.resample_to_img(SEG, PET, fill_value=-1024)
-            SEG_data = np.copy(SEGres.get_fdata())
+            SEG_data = (np.copy(SEGres.get_fdata())<0.5).astype(np.int16)
             new_data = new_data + SEG_data
         
         new_SEG = nib.Nifti1Image(new_data, SEGres.affine, header=SEGres.header)
