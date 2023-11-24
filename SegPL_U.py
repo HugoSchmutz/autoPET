@@ -131,14 +131,10 @@ class SegPL_U:
                 start_run.record()
                 
                 
-                
-                
                 x_lb, y_lb = prepare_batch(batch, args.gpu)
                 x_ulb, _ = prepare_batch(batch_u, args.gpu)
-
-                num_lb = x_lb.shape[0]            
+                num_lb = x_lb.shape[0]
                 #weak and strong augmentations for labelled and unlabelled data
-
                 inputs = torch.cat((x_lb, x_ulb))
                 # inference and calculate sup/unsup losses
                 with amp_cm():
@@ -231,8 +227,8 @@ class SegPL_U:
                     
                     save_path = os.path.join(args.save_dir, args.save_name)
                     
-                    if tb_dict['eval/dice'].item() < best_eval_dice:
-                        best_eval_dice = tb_dict['eval/dice'].item()
+                    if tb_dict['eval/dice'] <= best_eval_dice:
+                        best_eval_dice = tb_dict['eval/dice']
                         best_it = self.it
                         self.save_model('model_best.pth', save_path)
 
@@ -272,7 +268,8 @@ class SegPL_U:
             x, y = prepare_batch(batch, args.gpu)
             logits = sliding_window_inference(x, roi_size, sw_batch_size, eval_model, mode="gaussian", overlap=0.50)
             dice = self.dice_loss(logits, y).detach().cpu().item()
-            total_dice.append(dice)        
+            if y[0,1].sum().item() >0:
+                total_dice.append(dice)        
         if not use_ema:
             eval_model.train()
             

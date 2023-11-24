@@ -123,7 +123,8 @@ class SegPL:
 
         for epoch in range(args.epoch):
 
-            for (batch, batch_u) in zip(self.loader_dict['train_lb'], self.loader_dict['train_ulb']):                
+            for (batch, batch_u) in zip(self.loader_dict['train_lb'], self.loader_dict['train_ulb']):
+                
                 # prevent the training iterations exceed args.num_train_iter
                 if self.it > args.num_train_iter:
                     break
@@ -136,15 +137,15 @@ class SegPL:
                 
                 
                 x_lb, y_lb = prepare_batch(batch, args.gpu)
-                x_ulb, _ = prepare_batch(batch, args.gpu)
-                num_lb = x_lb.shape[0]    
+                x_ulb, _ = prepare_batch(batch_u, args.gpu)
+                num_lb = x_lb.shape[0]
                 #print(y_lb[:,1].sum((1,2,3)))        
                 #weak and strong augmentations for labelled and unlabelled data
                 inputs = torch.cat((x_lb, x_ulb))
                 # inference and calculate sup/unsup losses
                 with amp_cm():
                     logits = self.train_model(inputs)
-                    logits_x_lb = logits[:num_lb] 
+                    logits_x_lb = logits[:num_lb]
                     logits_x_ulb = logits[num_lb:]
 
                     # hyper-params for update
