@@ -305,7 +305,7 @@ def main_worker(gpu, ngpus_per_node, args):
         patch_size=patch_size
     )
     
-    
+    "hello"
     lb_dset, ulb_dset, eval_dset = get_ssl_dataset(args.data_dir, 
                                                    args.patients_list_dir,
                                                    args.num_labels,
