@@ -109,4 +109,4 @@
 # python3 test_script.py --new_test_set --load_path ./saved_models/FT_DeMT_softmax_normal_maskedDiceCE_200_0.1_0_0.0_0.0005/
 # python3 test_script.py --new_test_set --load_path ./saved_models/FT_DeMT_softmax_normal_maskedDiceCE_50_0.1_0_0.0_0.0005/
 
-python3 new_train.py --data_dir ai4pet_dataset/ --overwrite --rank 0 --gpu 1 --num_labels 40 --ulb_loss_ratio 0.0 --num_iter 5000 --max_queue_length 1000 --num_workers 12 --saved_dir ai4pet_saved_models/ --dropout 0.0
+python3 new_train.py --data_dir ai4pet_dataset/ --overwrite --rank 0 --gpu 1 --num_labels 50 --ulb_loss_ratio 0.0 --num_iter 10000 --max_queue_length 1000 --num_workers 12 --save_dir ai4pet_saved_models/ --dropout 0.0
