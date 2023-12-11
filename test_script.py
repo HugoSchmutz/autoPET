@@ -133,6 +133,7 @@ if __name__ == "__main__":
                 suv_max = (np.flip(pet_array, axis=0)*mask_out.T).max()
                 true_suv_max = (np.flip(pet_array, axis=0)*np.array(data['segmentation'][tio.DATA][0,1].T)).max()
                 print((np.flip(pet_array, axis=0)*mask_out.T).argmax(), (np.flip(pet_array, axis=0)*np.array(data['segmentation'][tio.DATA][0,1].T)).argmax())
+                print((np.flip(pet_array, axis=0)*mask_out.T).max(), (np.flip(pet_array, axis=0)*np.array(data['segmentation'][tio.DATA][0,1].T)).max())
                 mse_suv_max = (suv_max - true_suv_max.item())**2/(true_suv_max.item()+10**(-6))**2
                 
                 pet_spacing = np.array([3.,2.03642, 2.03642     ])
