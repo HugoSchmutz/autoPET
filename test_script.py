@@ -130,8 +130,8 @@ if __name__ == "__main__":
                 pred_mask_array = mask_out.T
                 gt_mask_array = np.array(data['segmentation'][tio.DATA][0,1]).T
                 
-                suv_max = (pet_array*mask_out).max()
-                true_suv_max = (pet_array*np.array(data['segmentation'][tio.DATA][0,1])).max()
+                suv_max = (np.flip(pet_array, axis=0)*mask_out).max()
+                true_suv_max = (np.flip(pet_array, axis=0)*np.array(data['segmentation'][tio.DATA][0,1])).max()
                 mse_suv_max = (suv_max - true_suv_max.item())**2/(true_suv_max.item()+10**(-6))**2
                 
                 pet_spacing = np.array([3.,2.03642, 2.03642     ])
