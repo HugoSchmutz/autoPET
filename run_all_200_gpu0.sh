@@ -103,8 +103,8 @@
 #python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 0 --num_labels 200 --finetune --max_queue_length 600 --num_workers 5 --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.1 --SegPL_U --ulb_loss_fct maskedDiceCE --dropout 0.0 --mean_teacher
 #python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 0 --num_labels 50 --finetune --max_queue_length 600 --num_workers 5 --load_path saved_models/CC_50_pretraining/model_best.pth --ulb_loss_ratio 0.1 --SegPL_U --ulb_loss_fct maskedDiceCE --dropout 0.0 --mean_teacher
 
-python3 test_script.py --new_test_set --load_path ./aved_models/CC_200_pretraining/model_best.pth
-python3 test_script.py --new_test_set --load_path ./aved_models/CC_50_pretraining/model_best.pth
+python3 test_script.py --new_test_set --load_path ./saved_models/CC_200_pretraining/model_best.pth
+python3 test_script.py --new_test_set --load_path ./saved_models/CC_50_pretraining/model_best.pth
 
 python3 test_script.py --new_test_set --load_path ./saved_models/FT_PL_normal_DiceCE_200_0.1_0_0.0_0.0005/
 python3 test_script.py --new_test_set --load_path ./saved_models/FT_PL_normal_DiceCE_50_0.1_0_0.0_0.0005/
