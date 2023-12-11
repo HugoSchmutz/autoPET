@@ -110,8 +110,6 @@ if __name__ == "__main__":
                 
                 mse_volume = (predicted_tumour_volume - true_volume.item())**2/(true_volume.item()+10**(-6))**2
                 dice_sc, false_pos_vol, false_neg_vol, true_nb_lesions, pred_nb_lesions = compute_metrics(mask_out, data['segmentation'][tio.DATA][0,1])
-                if true_volume.item() >0:
-                    metrics.append([dice_sc, false_pos_vol, false_neg_vol, predicted_tumour_volume, true_volume, mse_volume, true_nb_lesions, pred_nb_lesions, dice_loss])
                 
                 #csv_rows = [[dice_sc, false_pos_vol, false_neg_vol]]
                 #print(csv_rows)
@@ -131,6 +129,11 @@ if __name__ == "__main__":
                 pet_array = np.array(pet[tio.DATA][0]).T
                 pred_mask_array = mask_out.T
                 gt_mask_array = np.array(data['segmentation'][tio.DATA][0,1]).T
+                
+                suv_max = (pet_array*mask_out).max()
+                true_suv_max = (pet_array*np.array(data['segmentation'][tio.DATA][0,1])).max()
+                mse_suv_max = (suv_max - true_suv_max.item())**2/(true_suv_max.item()+10**(-6))**2
+                
                 pet_spacing = np.array([3.,2.03642, 2.03642     ])
                 # MIP PET coronal alone
                 show_mip_pet_and_mask(pet_array=pet_array,
@@ -157,15 +160,19 @@ if __name__ == "__main__":
                 fig.tight_layout()
                 pdf.savefig()  # saves the current figure into a pdf page
                 plt.close()
-            
+                if true_volume.item() >0:
+                    metrics.append([dice_sc, false_pos_vol, false_neg_vol, predicted_tumour_volume, true_volume, mse_volume, true_nb_lesions, pred_nb_lesions, dice_loss, suv_max, true_suv_max, mse_suv_max])
+                
             
     mean_dice_sc = np.mean(metrics, axis=0)[0]
     total_false_pos_vol = np.sum(metrics, axis=0)[1]
     total_false_negvol = np.sum(metrics, axis=0)[2]
     mean_mse_volume = np.mean(metrics, axis=0)[5]
+    
+    mean_mse_suv_max = np.mean(metrics, axis=0)[11]
     mean_dice_loss = np.mean(metrics, axis=0)[8]
     
-    print(f'Mean Dice: {mean_dice_sc:0.3f}, Mean Dice Loss: {mean_dice_loss:0.3f}, False positive: {total_false_pos_vol:0.3f}, False negative: {total_false_negvol:0.3f}, Mean MSE volume: {mean_mse_volume:0.3f}')
+    print(f'Mean Dice: {mean_dice_sc:0.3f}, Mean Dice Loss: {mean_dice_loss:0.3f}, False positive: {total_false_pos_vol:0.3f}, False negative: {total_false_negvol:0.3f}, Mean MSE volume: {mean_mse_volume:0.3f}, Mean MSE SUVmax: {mean_mse_suv_max:0.3f}')
     
     metrics = np.array(metrics)
     res= pd.DataFrame({'dice_sc':metrics[:,0],
@@ -175,7 +182,9 @@ if __name__ == "__main__":
                       'true_volume':metrics[:,4],
                       'MSE':metrics[:,5],
                       'true_nb_lesions': metrics[:,6], 
-                      'pred_nb_lesions': metrics[:,7]
+                      'pred_nb_lesions': metrics[:,7],
+                      'true_suv_max':metrics[:,10],
+                      'pred_suv_max':metrics[:,9]
                         })
     
     res.to_csv(os.path.join(args.load_path,"metrics.csv"))
@@ -199,6 +208,14 @@ if __name__ == "__main__":
     plt.ylabel('Predicted volume')
     plt.savefig(os.path.join(args.load_path,'volume.pdf'), format = 'pdf')
     print(np.corrcoef(res['predicted_volume'].values, res['true_volume'].values))
+    
+    plt.figure()
+    sns.regplot(x="true_suv_max", y="pred_suv_max", data=res)
+    plt.title('Correlation: {:0.3f}'.format(np.corrcoef(res['pred_suv_max'].values, res['true_suv_max'].values)[0,1]))
+    plt.xlabel('Ground truth SUVmax')
+    plt.ylabel('Predicted SUVmax')
+    plt.savefig(os.path.join(args.load_path,'SUVmax.pdf'), format = 'pdf')
+    print(np.corrcoef(res['pred_suv_max'].values, res['true_suv_max'].values))
     
     plt.figure()
     sns.regplot(x="true_nb_lesions", y="pred_nb_lesions", data=res)
