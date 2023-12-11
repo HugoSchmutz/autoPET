@@ -96,15 +96,17 @@
 #python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --num_labels 200 --finetune --max_queue_length 600 --num_workers 5 --load_path saved_models/CC_200_pretraining/model_best.pth --ulb_loss_ratio 0.1 --SegPL_U --ulb_loss_fct maskedDiceCE --dropout 0.0 --debiased --mean_teacher
 #python3 new_train.py --data_dir data/FDG-PET-CT-Lesions_nifti --overwrite --rank 0 --gpu 1 --num_labels 50 --finetune --max_queue_length 600 --num_workers 5 --load_path saved_models/CC_50_pretraining/model_best.pth --ulb_loss_ratio 0.1 --SegPL_U --ulb_loss_fct maskedDiceCE --dropout 0.0 --debiased --mean_teacher
 
-python3 test_script.py --new_test_set --load_path ./new_saved_models/FT_CC_normal_CE_200_0.05_0_0.0_0.0005/
-python3 test_script.py --new_test_set --load_path ./new_saved_models/FT_CC_normal_CE_50_0.05_0_0.0_0.0005/
+# python3 test_script.py --new_test_set --load_path ./new_saved_models/FT_CC_normal_CE_200_0.05_0_0.0_0.0005/
+# python3 test_script.py --new_test_set --load_path ./new_saved_models/FT_CC_normal_CE_50_0.05_0_0.0_0.0005/
 
-python3 test_script.py --new_test_set --load_path ./saved_models/FT_DePL_normal_DiceCE_200_0.1_0_0.0_0.0005/
-python3 test_script.py --new_test_set --load_path ./saved_models/FT_DePL_normal_DiceCE_50_0.1_0_0.0_0.0005/
-python3 test_script.py --new_test_set --load_path ./saved_models/FT_DePL_softmax_normal_maskedDiceCE_200_0.1_0_0.0_0.0005/
-python3 test_script.py --new_test_set --load_path ./saved_models/FT_DePL_softmax_normal_maskedDiceCE_50_0.1_0_0.0_0.0005/
+# python3 test_script.py --new_test_set --load_path ./saved_models/FT_DePL_normal_DiceCE_200_0.1_0_0.0_0.0005/
+# python3 test_script.py --new_test_set --load_path ./saved_models/FT_DePL_normal_DiceCE_50_0.1_0_0.0_0.0005/
+# python3 test_script.py --new_test_set --load_path ./saved_models/FT_DePL_softmax_normal_maskedDiceCE_200_0.1_0_0.0_0.0005/
+# python3 test_script.py --new_test_set --load_path ./saved_models/FT_DePL_softmax_normal_maskedDiceCE_50_0.1_0_0.0_0.0005/
 
-python3 test_script.py --new_test_set --load_path ./saved_models/FT_DeMT_normal_DiceCE_200_0.1_0_0.0_0.0005/
-python3 test_script.py --new_test_set --load_path ./saved_models/FT_DeMT_normal_DiceCE_50_0.1_0_0.0_0.0005/
-python3 test_script.py --new_test_set --load_path ./saved_models/FT_DeMT_softmax_normal_maskedDiceCE_200_0.1_0_0.0_0.0005/
-python3 test_script.py --new_test_set --load_path ./saved_models/FT_DeMT_softmax_normal_maskedDiceCE_50_0.1_0_0.0_0.0005/
+# python3 test_script.py --new_test_set --load_path ./saved_models/FT_DeMT_normal_DiceCE_200_0.1_0_0.0_0.0005/
+# python3 test_script.py --new_test_set --load_path ./saved_models/FT_DeMT_normal_DiceCE_50_0.1_0_0.0_0.0005/
+# python3 test_script.py --new_test_set --load_path ./saved_models/FT_DeMT_softmax_normal_maskedDiceCE_200_0.1_0_0.0_0.0005/
+# python3 test_script.py --new_test_set --load_path ./saved_models/FT_DeMT_softmax_normal_maskedDiceCE_50_0.1_0_0.0_0.0005/
+
+python3 new_train.py --data_dir ai4pet_dataset/ --overwrite --rank 0 --gpu 1 --num_labels 40 --ulb_loss_ratio 0.0 --num_iter 5000 --max_queue_length 1000 --num_workers 12 --saved_dir ai4pet_saved_models/ --dropout 0.0
