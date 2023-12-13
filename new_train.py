@@ -311,9 +311,12 @@ def main_worker(gpu, ngpus_per_node, args):
                                                    args.num_val, 
                                                    transform=standard_transform)
     print('Training labelled set:', len(lb_dset), 'subjects \t Training unlabelled set:', len(ulb_dset), 'subjects')
-    print('Validation set:', len(eval_dset), 'subjects')
     for x in ulb_dset:
         print(x.path)
+    print('Validation set:', len(eval_dset), 'subjects')
+    
+        
+    loader_dict = {}
     patches_dict = {}
     dset_dict = {'train_lb': lb_dset, 'train_ulb': ulb_dset, 'eval': eval_dset}
     
