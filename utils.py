@@ -264,9 +264,7 @@ def get_test_dataset(data_path, patients_list_dir, transform, new=False):
     subjects_test = subjects_list(all_paths_test)
     
     test_set = tio.SubjectsDataset(
-        subjects_test, 
-        transform=transform
-        )
+        subjects_test, transform=transform)
     return(test_set)
 
 
@@ -280,14 +278,10 @@ def get_ssl_dataset(data_path, patients_list_dir, num_labelled, num_eval, transf
     labelled_subjects, unlabelled_subjects = split_labelled_unlabelled(subjects_train, num_labelled)
 
     training_labelled_set = tio.SubjectsDataset(
-        labelled_subjects, 
-        transform=transform
-        )
+        labelled_subjects, transform=transform)
 
     training_unlabelled_set = tio.SubjectsDataset(
-        unlabelled_subjects, 
-        #transform=transform
-        )
+        unlabelled_subjects, transform=transform)
 
     validation_set = tio.SubjectsDataset(
         subjects_eval, transform=transform)
