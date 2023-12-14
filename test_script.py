@@ -125,7 +125,7 @@ if __name__ == "__main__":
                 fig, axes = plt.subplots(1, 3, figsize=(15, 10))
                 # convert to numpy
                 
-                pet= tio.ToCanonical()(tio.ScalarImage(os.path.join(data['path'][0], 'SUV.nii.gz')))
+                pet= tio.ToCanonical()(tio.ScalarImage(os.path.join(data['path'][0], 'SUV.nii')))
                 pet_array = np.array(pet[tio.DATA][0]).T
                 pred_mask_array = mask_out.T
                 gt_mask_array = np.array(data['segmentation'][tio.DATA][0,1]).T
