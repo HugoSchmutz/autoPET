@@ -163,7 +163,7 @@ if __name__ == "__main__":
                 pdf.savefig()  # saves the current figure into a pdf page
                 plt.close()
                 if true_volume.item() >0:
-                    metrics.append([dice_sc, false_pos_vol, false_neg_vol, predicted_tumour_volume, true_volume, mse_volume, true_nb_lesions, pred_nb_lesions, dice_loss, suv_max, true_suv_max, mse_suv_max])
+                    metrics.append([dice_sc, false_pos_vol, false_neg_vol, predicted_tumour_volume, true_volume, mse_volume, true_nb_lesions, pred_nb_lesions, dice_loss, suv_max, true_suv_max, mse_suv_max, data['path'],])
                 
             
     mean_dice_sc = np.mean(metrics, axis=0)[0]
@@ -177,7 +177,8 @@ if __name__ == "__main__":
     print(f'Mean Dice: {mean_dice_sc:0.3f}, Mean Dice Loss: {mean_dice_loss:0.3f}, False positive: {total_false_pos_vol:0.3f}, False negative: {total_false_negvol:0.3f}, Mean MSE volume: {mean_mse_volume:0.3f}, Mean MSE SUVmax: {mean_mse_suv_max:0.3f}')
     
     metrics = np.array(metrics)
-    res= pd.DataFrame({'dice_sc':metrics[:,0],
+    res= pd.DataFrame({'id': metrics[:,12],
+                      'dice_sc':metrics[:,0],
                       'false_pos_vol':metrics[:,1], 
                       'false_neg_vol':metrics[:,2],
                       'predicted_volume':metrics[:,3],
