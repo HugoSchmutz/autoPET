@@ -124,4 +124,4 @@ python3 new_train.py --data_dir ai4pet_dataset/ --patients_list_dir AI4PET_data/
 python3 test_script.py --new_test_set --load_path ./ai4pet_saved_models2/CC_normal_CE_50_0.0_1_0.0_0.0005/ --data_dir ai4pet_dataset/ --patients_list_dir AI4PET_data/
 python3 test_script.py --new_test_set --load_path ./ai4pet_saved_models2/FT_CC_normal_CE_50_0.0_1_0.0_0.0005/ --data_dir ai4pet_dataset/ --patients_list_dir AI4PET_data/
 python3 test_script.py --new_test_set --load_path ./ai4pet_saved_models2/FT_MT_softmax_normal_maskedDiceCE_50_0.1_1_0.0_0.0005/ --data_dir ai4pet_dataset/ --patients_list_dir AI4PET_data/
-python3 test_script.py --new_test_set --load_path ./ai4pet_saved_models2/FT_DeMT_softmax_normal_maskedDiceCE_50_0.1_1_0.0_0.0005/ --data_dir ai4pet_dataset/ --patients_list_dir AI4PET_data/
+python3 test_script.py --new_test_set --load_path ./ai4pet_saved_models2/FT_DeMT_softmax_normal_maskedDiceCE_50_0.1_1_0.0_0.0005/ --data_dir ai4pet_dataset/ --patients_list_dir AI4PET_data/ 
